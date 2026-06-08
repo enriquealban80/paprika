@@ -1,0 +1,1993 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paprika — Dashboard Prospectos</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --orange:#D85A30;--orange-light:#FAECE7;--orange-mid:#F0997B;
+  --green:#1D9E75;--green-light:#E1F5EE;
+  --amber:#BA7517;--amber-light:#FAEEDA;
+  --blue:#185FA5;--blue-light:#E6F1FB;
+  --purple:#3C3489;--purple-light:#EEEDFE;
+  --gray:#5F5E5A;--gray-light:#F1EFE8;
+  --border:rgba(0,0,0,0.09);--text:#2C2C2A;--text-muted:#888780;
+  --bg:#F7F5F0;--white:#fff;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;gap:1rem;height:60px;position:sticky;top:0;z-index:100;}
+.logo{font-family:'DM Serif Display',serif;font-size:20px;color:var(--orange);white-space:nowrap;}
+.logo span{color:var(--text);}
+.nav-pills{display:flex;gap:4px;margin-left:auto;}
+.pill{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all .15s;color:var(--text-muted);}
+.pill.active,.pill:hover{background:var(--orange-light);color:var(--orange);border-color:var(--orange-mid);}
+.new-btn{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.new-btn:hover{opacity:.88;}
+.main{display:grid;grid-template-columns:270px 1fr;min-height:calc(100vh - 60px);}
+.sidebar{background:var(--white);border-right:1px solid var(--border);padding:1.25rem;overflow-y:auto;}
+.search-box{position:relative;margin-bottom:1.25rem;}
+.search-box input{width:100%;padding:9px 12px 9px 34px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--gray-light);color:var(--text);outline:none;transition:border-color .15s;}
+.search-box input:focus{border-color:var(--orange-mid);background:var(--white);}
+.search-box svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);}
+.filter-group{margin-bottom:1.25rem;}
+.filter-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:7px;}
+.check-item{display:flex;align-items:center;gap:7px;padding:4px 0;cursor:pointer;}
+.check-item input[type=checkbox]{width:14px;height:14px;accent-color:var(--orange);cursor:pointer;}
+.check-item label{font-size:12px;cursor:pointer;flex:1;}
+.count-badge{font-size:10px;background:var(--gray-light);color:var(--gray);padding:1px 6px;border-radius:10px;font-weight:500;}
+select.filter-select{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;color:var(--text);background:var(--white);outline:none;cursor:pointer;}
+.stat-mini{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:1.25rem;}
+.stat-box{background:var(--gray-light);border-radius:8px;padding:9px 11px;}
+.stat-box .n{font-size:19px;font-weight:600;color:var(--text);}
+.stat-box .l{font-size:10px;color:var(--text-muted);margin-top:1px;}
+.stat-box.orange{background:var(--orange-light);} .stat-box.orange .n{color:var(--orange);}
+.stat-box.green{background:var(--green-light);} .stat-box.green .n{color:var(--green);}
+.content{padding:1.25rem;overflow-y:auto;}
+.content-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+.result-count{font-size:13px;color:var(--text-muted);}
+.result-count strong{color:var(--text);}
+.sort-row{display:flex;gap:8px;align-items:center;}
+.sort-row label{font-size:12px;color:var(--text-muted);}
+.sort-row select{padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;color:var(--text);outline:none;background:var(--white);}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px;}
+.company-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:1rem 1.1rem;transition:box-shadow .15s,border-color .15s;cursor:pointer;position:relative;overflow:hidden;}
+.company-card:hover{border-color:var(--orange-mid);box-shadow:0 4px 16px rgba(216,90,48,.1);}
+.company-card.priority{border-left:3px solid var(--orange);}
+.card-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;}
+.company-logo{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0;}
+.card-title{font-size:14px;font-weight:600;line-height:1.3;}
+.card-sub{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.card-badges{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:9px;}
+.badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;}
+.badge-city-gye{background:var(--blue-light);color:var(--blue);}
+.badge-city-dur{background:var(--amber-light);color:var(--amber);}
+.badge-city-dau{background:var(--green-light);color:var(--green);}
+.badge-sector{background:var(--gray-light);color:var(--gray);}
+.badge-urgente{background:var(--orange-light);color:var(--orange);}
+.badge-nuevo{background:var(--purple-light);color:var(--purple);}
+.badge-licitacion{background:#FFF0FB;color:#8B1A6B;}
+.badge-cartera{background:#F0FFF4;color:#166534;}
+.card-info{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:9px;}
+.info-item{font-size:11px;color:var(--text-muted);}
+.info-item strong{display:block;font-size:12px;font-weight:600;color:var(--text);}
+.card-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding-top:8px;}
+.personas-pill{font-size:12px;font-weight:600;color:var(--orange);background:var(--orange-light);padding:3px 9px;border-radius:20px;}
+.contact-btn{font-size:12px;font-weight:500;color:var(--blue);background:var(--blue-light);border:none;border-radius:6px;padding:4px 11px;cursor:pointer;}
+.urgency-dot{width:8px;height:8px;border-radius:50%;position:absolute;top:13px;right:13px;}
+.dot-alta{background:var(--orange);} .dot-media{background:var(--amber);} .dot-baja{background:var(--green);}
+.pagination{display:flex;align-items:center;justify-content:center;gap:5px;margin-top:1.25rem;}
+.page-btn{width:32px;height:32px;border:1px solid var(--border);border-radius:8px;background:var(--white);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text);transition:all .15s;}
+.page-btn.active{background:var(--orange);color:#fff;border-color:var(--orange);}
+.page-btn:hover:not(.active){border-color:var(--orange-mid);color:var(--orange);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--white);border-radius:16px;padding:1.75rem;width:600px;max-width:95vw;max-height:90vh;overflow-y:auto;position:relative;}
+.modal-close{position:absolute;top:14px;right:14px;background:var(--gray-light);border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;}
+.modal h2{font-family:'DM Serif Display',serif;font-size:21px;margin-bottom:5px;}
+.modal-section{margin-top:1.1rem;}
+.modal-section h4{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text-muted);margin-bottom:7px;}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.detail-item{background:var(--gray-light);border-radius:8px;padding:9px 11px;}
+.detail-item .dl{font-size:10px;color:var(--text-muted);}
+.detail-item .dv{font-size:13px;font-weight:600;margin-top:2px;}
+.timeline{border-left:2px solid var(--border);padding-left:1rem;}
+.tl-item{position:relative;margin-bottom:10px;}
+.tl-item::before{content:'';position:absolute;left:-1.28rem;top:5px;width:8px;height:8px;border-radius:50%;background:var(--orange);}
+.tl-item .tl-date{font-size:10px;color:var(--text-muted);}
+.tl-item .tl-text{font-size:12px;}
+.tag-req{display:inline-block;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;background:#FEF3E2;color:#92400E;margin:2px;}
+.source-note{background:#F0FFF4;border:1px solid #BBF7D0;border-radius:8px;padding:10px 13px;font-size:12px;color:#166534;margin-top:8px;}
+input,textarea,select{font-family:'DM Sans',sans-serif;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">🌶 papri<span>ka</span></div>
+  <div class="nav-pills">
+    <div class="pill active" onclick="showSection('prospectos',this)">Prospectos</div>
+    <div class="pill" onclick="showSection('contratos',this)">Contratos</div>
+    <div class="pill" onclick="showSection('mapa',this)">Mapa</div>
+    <div class="pill" onclick="showSection('reportes',this)">Reportes</div>
+    <div class="pill" onclick="showSection('ferias',this)">🎪 Ferias y Eventos</div>
+    <div class="pill" onclick="showSection('contactos',this)">📋 Lista de Contactos</div>
+    <div class="pill" onclick="showSection('misprospectos',this)">⭐ Mis Prospectos</div>
+  </div>
+</div>
+
+<div class="main" id="mainGrid">
+  <aside class="sidebar">
+    <div class="stat-mini">
+      <div class="stat-box orange"><div class="n" id="stat-total">0</div><div class="l">Total empresas</div></div>
+      <div class="stat-box green"><div class="n" id="stat-urgente">0</div><div class="l">Alta prioridad</div></div>
+      <div class="stat-box"><div class="n" id="stat-gye">0</div><div class="l">Guayaquil</div></div>
+      <div class="stat-box"><div class="n" id="stat-dur">0</div><div class="l">Durán + Daule</div></div>
+    </div>
+    <div class="search-box">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="Buscar empresa, sector, zona..." oninput="filterAndRender()">
+    </div>
+    <div class="filter-group">
+      <div class="filter-label">Ciudad</div>
+      <div class="check-item"><input type="checkbox" id="f-gye" checked onchange="filterAndRender()"><label for="f-gye">Guayaquil</label><span class="count-badge" id="cb-gye">0</span></div>
+      <div class="check-item"><input type="checkbox" id="f-dur" checked onchange="filterAndRender()"><label for="f-dur">Durán</label><span class="count-badge" id="cb-dur">0</span></div>
+      <div class="check-item"><input type="checkbox" id="f-dau" checked onchange="filterAndRender()"><label for="f-dau">Daule</label><span class="count-badge" id="cb-dau">0</span></div>
+      <div class="check-item"><input type="checkbox" id="f-pas" checked onchange="filterAndRender()"><label for="f-pas">Pascuales</label><span class="count-badge" id="cb-pas">0</span></div>
+    </div>
+    <div class="filter-group">
+      <div class="filter-label">Prioridad</div>
+      <div class="check-item"><input type="checkbox" id="f-alta" checked onchange="filterAndRender()"><label for="f-alta">Alta</label><span class="count-badge" id="cb-alta">0</span></div>
+      <div class="check-item"><input type="checkbox" id="f-media" checked onchange="filterAndRender()"><label for="f-media">Media</label><span class="count-badge" id="cb-media">0</span></div>
+      <div class="check-item"><input type="checkbox" id="f-baja" checked onchange="filterAndRender()"><label for="f-baja">Baja</label><span class="count-badge" id="cb-baja">0</span></div>
+    </div>
+    <div class="filter-group">
+      <div class="filter-label">Estado de búsqueda</div>
+      <div class="check-item"><input type="checkbox" id="f-licitacion" checked onchange="filterAndRender()"><label for="f-licitacion">En licitación</label></div>
+      <div class="check-item"><input type="checkbox" id="f-cartera" checked onchange="filterAndRender()"><label for="f-cartera">Con cartera de proveedores</label></div>
+      <div class="check-item"><input type="checkbox" id="f-busqueda" checked onchange="filterAndRender()"><label for="f-busqueda">Búsqueda abierta</label></div>
+    </div>
+    <div class="filter-group">
+      <div class="filter-label">Tipo de servicio</div>
+      <div class="check-item"><input type="checkbox" id="f-cocina" checked onchange="filterAndRender()"><label for="f-cocina">Cocina en sitio</label></div>
+      <div class="check-item"><input type="checkbox" id="f-autoservicio" checked onchange="filterAndRender()"><label for="f-autoservicio">Autoservicio</label></div>
+      <div class="check-item"><input type="checkbox" id="f-descartable" checked onchange="filterAndRender()"><label for="f-descartable">Envases descartables</label></div>
+      <div class="check-item"><input type="checkbox" id="f-merienda" checked onchange="filterAndRender()"><label for="f-merienda">Meriendas</label></div>
+    </div>
+    <div class="filter-group">
+      <div class="filter-label">Sector</div>
+      <select class="filter-select" id="f-sector" onchange="filterAndRender()">
+        <option value="">Todos los sectores</option>
+        <option>Industrial</option><option>Manufactura</option><option>Logística</option>
+        <option>Construcción</option><option>Salud</option><option>Educación</option><option>Comercio</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <div class="filter-label">N.° colaboradores (mín.)</div>
+      <select class="filter-select" id="f-size" onchange="filterAndRender()">
+        <option value="0">Desde 25</option>
+        <option value="50">Desde 50</option>
+        <option value="100">Desde 100</option>
+        <option value="300">Desde 300</option>
+        <option value="500">Desde 500</option>
+      </select>
+    </div>
+  </aside>
+
+  <div class="content">
+    <div class="content-header">
+      <div class="result-count">Mostrando <strong id="visible-count">0</strong> empresas · <span style="font-size:11px;color:var(--green);">● Actualizado: <span id="lastUpdate"></span></span></div>
+      <div class="sort-row">
+        <label>Ordenar:</label>
+        <select onchange="sortOrder=this.value;filterAndRender()">
+          <option value="prioridad">Prioridad</option>
+          <option value="personas">N.° personas</option>
+          <option value="nombre">Nombre A–Z</option>
+          <option value="reciente">Más reciente</option>
+        </select>
+      </div>
+    </div>
+    <div class="cards-grid" id="cardsGrid"></div>
+    <div class="pagination" id="paginationContainer"></div>
+  </div>
+</div>
+
+<div id="extraSection" style="display:none;min-height:calc(100vh - 60px);"></div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal" id="modalBox">
+    <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+// ─── DATOS BASE ───────────────────────────────────────────────────────────────
+// Fuente: ingresada manualmente + portales de licitación pública (SERCOP, páginas corporativas)
+// Se actualizan al agregar nuevos prospectos desde el formulario.
+
+const STORAGE_KEY = 'paprika_prospectos_v3';
+
+const datosBase = [
+  {
+    id:1, nombre:'Procesadora El Pacífico', ruc:'0990112345001', sector:'Industrial',
+    ciudad:'Guayaquil', zona:'Norte industrial — Km 6 vía Daule', personas:420,
+    tipoServicio:'cocina', modalidadBusqueda:'licitacion',
+    prioridad:'alta', contacto:'Ing. Roberto Lara', cargo:'Gerente Administrativo',
+    tel:'099-234-5678', email:'r.lara@pacifico.com.ec',
+    solicitud:'hace 3 días', fechaRegistro: new Date(Date.now()-3*86400000).toISOString(),
+    notas:'Necesitan 3 turnos: 6am, 12pm, 6pm. Aprox 140 comensales por turno.',
+    requisitos:['Certificado BPM','Permiso Sanitario ARCSA','ISO 22000','Seguro de responsabilidad civil'],
+    web:'www.pacifico.com.ec', direccion:'Km 6 vía Daule, Guayaquil',
+    nuevo:true, fuente:'Licitación SERCOP — proceso 2024-001'
+  },
+  {
+    id:2, nombre:'Cementera Anchón S.A.', ruc:'0990223456001', sector:'Construcción',
+    ciudad:'Durán', zona:'Km 12 vía Durán — Parque Industrial', personas:310,
+    tipoServicio:'autoservicio', modalidadBusqueda:'cartera',
+    prioridad:'alta', contacto:'Lcda. Carmen Reyes', cargo:'Jefa de RRHH',
+    tel:'098-876-5432', email:'creyes@anchon.ec',
+    solicitud:'hace 1 día', fechaRegistro: new Date(Date.now()-1*86400000).toISOString(),
+    notas:'Solicitan menú vegetariano para el 30% de colaboradores. Tienen 2 proveedores actuales evaluados.',
+    requisitos:['Permiso Municipal','Certificado BPM','Manipulación de alimentos','RUC activo'],
+    web:'www.anchon.ec', direccion:'Km 12 Durán, Parque Industrial',
+    fuente:'Contacto directo — feria empresarial'
+  },
+  {
+    id:3, nombre:'Hospilatino Clínica', ruc:'0990334567001', sector:'Salud',
+    ciudad:'Guayaquil', zona:'Urdesa Norte', personas:180,
+    tipoServicio:'cocina', modalidadBusqueda:'busqueda',
+    prioridad:'alta', contacto:'Dr. Miguel Vera', cargo:'Director Médico',
+    tel:'04-256-7890', email:'',
+    solicitud:'hoy', fechaRegistro: new Date().toISOString(),
+    notas:'Turnos nocturnos incluidos (24h). Dietas especiales: diabéticos, hiposódica, blanda.',
+    requisitos:['Nutricionista certificado','Certificado BPM','Permiso Sanitario ARCSA','Manejo de dietas clínicas'],
+    web:'www.hospilatino.ec', direccion:'Av. Las Monjas, Urdesa Norte',
+    nuevo:true, fuente:'Referido por cliente actual'
+  },
+  {
+    id:4, nombre:'Textilería Guayas', ruc:'0990445678001', sector:'Manufactura',
+    ciudad:'Guayaquil', zona:'Parque Industrial Norte', personas:260,
+    tipoServicio:'autoservicio', modalidadBusqueda:'licitacion',
+    prioridad:'media', contacto:'Sra. Andrea Palma', cargo:'Coordinadora Administrativa',
+    tel:'099-555-1234', email:'apalma@textileraguayas.com',
+    solicitud:'hace 5 días', fechaRegistro: new Date(Date.now()-5*86400000).toISOString(),
+    notas:'Buscan proveedor con ISO 22000. Contrato mínimo 1 año.',
+    requisitos:['ISO 22000','Certificado BPM','Permiso Sanitario','Experiencia mínima 3 años'],
+    web:'', direccion:'Parque Industrial Norte, Guayaquil',
+    fuente:'Página web corporativa — formulario de contacto'
+  },
+  {
+    id:5, nombre:'LogiPort Ecuador', ruc:'0990556789001', sector:'Logística',
+    ciudad:'Guayaquil', zona:'Puerto Marítimo — Zona Franca', personas:140,
+    tipoServicio:'descartable', modalidadBusqueda:'busqueda',
+    prioridad:'media', contacto:'Sr. Félix Torres', cargo:'Supervisor de Operaciones',
+    tel:'099-321-9870', email:'ftorres@logiport.ec',
+    solicitud:'hace 2 días', fechaRegistro: new Date(Date.now()-2*86400000).toISOString(),
+    notas:'Refrigerio a las 10am y 3pm. Personal en campo, requieren envases herméticos.',
+    requisitos:['Certificado BPM','Permiso Municipal','Vehículo de transporte certificado'],
+    web:'www.logiport.ec', direccion:'Terminal Portuario, Guayaquil',
+    fuente:'LinkedIn — publicación de licitación'
+  },
+  {
+    id:6, nombre:'Escuela Politécnica del Litoral', ruc:'0960000370001', sector:'Educación',
+    ciudad:'Guayaquil', zona:'Campus Gustavo Galindo, Prosperina', personas:500,
+    tipoServicio:'cocina', modalidadBusqueda:'licitacion',
+    prioridad:'alta', contacto:'Admin. Patricia Suárez', cargo:'Directora Administrativa',
+    tel:'04-226-9000', email:'admin.servicios@espol.edu.ec',
+    solicitud:'hace 4 días', fechaRegistro: new Date(Date.now()-4*86400000).toISOString(),
+    notas:'Contrato anual. Requieren variedad gastronómica y opciones veganas.',
+    requisitos:['ISO 22000','Certificado BPM','Nutricionista','Permiso Sanitario ARCSA','Experiencia en instituciones educativas'],
+    web:'www.espol.edu.ec', direccion:'Prosperina, Campus ESPOL',
+    nuevo:true, fuente:'Portal SERCOP — proceso público'
+  },
+  {
+    id:7, nombre:'Plásticos del Sur Cía. Ltda.', ruc:'0990778901001', sector:'Manufactura',
+    ciudad:'Durán', zona:'Km 16 vía Durán–Tambo', personas:95,
+    tipoServicio:'descartable', modalidadBusqueda:'busqueda',
+    prioridad:'media', contacto:'Sr. Henry Gutiérrez', cargo:'Gerente General',
+    tel:'099-100-2233', email:'',
+    solicitud:'hace 7 días', fechaRegistro: new Date(Date.now()-7*86400000).toISOString(),
+    notas:'Solo días laborables L–V. Presupuesto mensual aprox $2.800.',
+    requisitos:['Permiso Municipal','Certificado BPM'],
+    web:'', direccion:'Km 16 Durán',
+    fuente:'Referido'
+  },
+  {
+    id:8, nombre:'Constructora Baquerizo Hnos.', ruc:'0990889012001', sector:'Construcción',
+    ciudad:'Daule', zona:'Centro — proyecto Ciudadela Los Ríos', personas:70,
+    tipoServicio:'descartable', modalidadBusqueda:'busqueda',
+    prioridad:'baja', contacto:'Ing. Luis Baquerizo', cargo:'Jefe de Obra',
+    tel:'099-888-4567', email:'lbaquerizo@constructora.ec',
+    solicitud:'hace 10 días', fechaRegistro: new Date(Date.now()-10*86400000).toISOString(),
+    notas:'Obra temporal 6 meses. Personal en campo sin comedor.',
+    requisitos:['Permiso Municipal','Certificado BPM','Transporte certificado'],
+    web:'', direccion:'Av. León Febres Cordero, Daule',
+    fuente:'Contacto directo en obra'
+  },
+  {
+    id:9, nombre:'Supermercados Coral S.A.', ruc:'0990112901001', sector:'Comercio',
+    ciudad:'Guayaquil', zona:'Alborada — sede central', personas:380,
+    tipoServicio:'autoservicio', modalidadBusqueda:'cartera',
+    prioridad:'alta', contacto:'Gte. Sandra Mora', cargo:'Gerente de RRHH Corporativo',
+    tel:'04-245-7800', email:'smora@coral.com.ec',
+    solicitud:'hace 2 días', fechaRegistro: new Date(Date.now()-2*86400000).toISOString(),
+    notas:'14 sucursales en distintos horarios. Necesitan coordinación centralizada.',
+    requisitos:['ISO 22000','Certificado BPM','Permiso Sanitario ARCSA','Facturación electrónica','Cobertura multi-sucursal'],
+    web:'www.coral.com.ec', direccion:'Alborada 9na Etapa, Guayaquil',
+    fuente:'Contacto directo — evento de proveedores'
+  },
+  {
+    id:10, nombre:'Acería del Ecuador S.A.', ruc:'0990223012001', sector:'Industrial',
+    ciudad:'Durán', zona:'Parque Industrial Sur', personas:290,
+    tipoServicio:'cocina', modalidadBusqueda:'licitacion',
+    prioridad:'media', contacto:'Carlos Nieto', cargo:'Jefe de RRHH',
+    tel:'099-654-3210', email:'cnieto@aceria.ec',
+    solicitud:'hace 6 días', fechaRegistro: new Date(Date.now()-6*86400000).toISOString(),
+    notas:'Prioridad: costo por comensal competitivo. 2 turnos: 7am y 12pm.',
+    requisitos:['Certificado BPM','Permiso Municipal','Seguro de accidentes para personal de cocina'],
+    web:'www.aceria.ec', direccion:'Parque Industrial Sur, Durán',
+    fuente:'Licitación privada — convocatoria por correo'
+  },
+  {
+    id:11, nombre:'Agroverde Daule S.A.', ruc:'0990334123001', sector:'Industrial',
+    ciudad:'Daule', zona:'Km 25 vía Daule–Balzar', personas:130,
+    tipoServicio:'descartable', modalidadBusqueda:'busqueda',
+    prioridad:'media', contacto:'Sr. Raúl Ponce', cargo:'Administrador de Finca',
+    tel:'099-777-3344', email:'',
+    solicitud:'hace 3 días', fechaRegistro: new Date(Date.now()-3*86400000).toISOString(),
+    notas:'Trabajadores de campo agrícola. Necesitan loncheras térmicas resistentes.',
+    requisitos:['Permiso Municipal','Certificado BPM','Transporte refrigerado'],
+    web:'', direccion:'Km 25 Daule',
+    fuente:'Referido por cliente'
+  },
+  {
+    id:12, nombre:'Puerto Seco Trinitaria', ruc:'0990445234001', sector:'Logística',
+    ciudad:'Guayaquil', zona:'Trinitaria — Av. Terminal Terrestre', personas:220,
+    tipoServicio:'autoservicio', modalidadBusqueda:'cartera',
+    prioridad:'baja', contacto:'Lcdo. Mario Espín', cargo:'Coordinador Logístico',
+    tel:'04-233-0011', email:'mespin@puertoseco.com',
+    solicitud:'hace 12 días', fechaRegistro: new Date(Date.now()-12*86400000).toISOString(),
+    notas:'Pausas cortas (20 min). Servicio rápido indispensable.',
+    requisitos:['Certificado BPM','Permiso Sanitario'],
+    web:'', direccion:'Trinitaria, Guayaquil',
+    fuente:'Página web — formulario'
+  },
+  {
+    id:13, nombre:'Laboratorios Andibea', ruc:'0990556345001', sector:'Salud',
+    ciudad:'Guayaquil', zona:'Kennedy Norte', personas:160,
+    tipoServicio:'autoservicio', modalidadBusqueda:'busqueda',
+    prioridad:'media', contacto:'Dra. Valeria Ríos', cargo:'Gerente de Operaciones',
+    tel:'099-400-5566', email:'vrios@andibea.ec',
+    solicitud:'hace 4 días', fechaRegistro: new Date(Date.now()-4*86400000).toISOString(),
+    notas:'Requieren etiquetado nutricional en cada plato. Personal con alergias registradas.',
+    requisitos:['Nutricionista certificado','Certificado BPM','Permiso ARCSA','Etiquetado nutricional'],
+    web:'www.andibea.ec', direccion:'Kennedy Norte, Guayaquil',
+    fuente:'LinkedIn'
+  },
+  {
+    id:14, nombre:'Empacadora Rivadeneira S.A.', ruc:'0990667456001', sector:'Industrial',
+    ciudad:'Durán', zona:'Km 10 vía Durán', personas:190,
+    tipoServicio:'cocina', modalidadBusqueda:'licitacion',
+    prioridad:'alta', contacto:'Sr. Jorge Rivadeneira', cargo:'Gerente General',
+    tel:'099-210-8877', email:'jrivadeneira@empacadora.ec',
+    solicitud:'ayer', fechaRegistro: new Date(Date.now()-1*86400000).toISOString(),
+    notas:'Urgente: contrato anterior venció el mes pasado. 3 turnos de producción.',
+    requisitos:['Certificado BPM','Permiso Sanitario ARCSA','ISO 22000','Seguro civil'],
+    web:'', direccion:'Km 10 Durán',
+    fuente:'Contacto directo — urgente'
+  },
+  {
+    id:15, nombre:'Unidad Educativa Salesiana', ruc:'0990112567001', sector:'Educación',
+    ciudad:'Guayaquil', zona:'Centenario — Av. Olmedo', personas:250,
+    tipoServicio:'merienda', modalidadBusqueda:'busqueda',
+    prioridad:'baja', contacto:'Rect. Hna. María José', cargo:'Rectora',
+    tel:'04-229-5000', email:'',
+    solicitud:'hace 9 días', fechaRegistro: new Date(Date.now()-9*86400000).toISOString(),
+    notas:'Solo receso escolar 10am. Énfasis en alimentación saludable para menores.',
+    requisitos:['Permiso Municipal','Certificado BPM','Permiso ARCSA','Productos sin colorantes artificiales'],
+    web:'www.salesiana.edu.ec', direccion:'Av. Olmedo, Centenario',
+    fuente:'Contacto directo — institución'
+  },
+  {
+    id:16, nombre:'Carpintería Industrial Norte', ruc:'0990223678001', sector:'Manufactura',
+    ciudad:'Daule', zona:'Km 30 vía Daule', personas:60,
+    tipoServicio:'descartable', modalidadBusqueda:'busqueda',
+    prioridad:'baja', contacto:'Sr. Patricio Vélez', cargo:'Propietario',
+    tel:'099-303-9912', email:'pvelez@carpinteria.ec',
+    solicitud:'hace 14 días', fechaRegistro: new Date(Date.now()-14*86400000).toISOString(),
+    notas:'Pyme, presupuesto ajustado. Máx $3.50 por comensal.',
+    requisitos:['Permiso Municipal','Certificado BPM'],
+    web:'', direccion:'Km 30 Daule',
+    fuente:'Referido'
+  },
+  {
+    id:17, nombre:'Frigotécnica del Litoral S.A.', ruc:'0990334789001', sector:'Industrial',
+    ciudad:'Guayaquil', zona:'Pascuales — Parque Industrial Pascuales', personas:340,
+    tipoServicio:'cocina', modalidadBusqueda:'licitacion',
+    prioridad:'alta', contacto:'Ing. Beatriz Alvarado', cargo:'Gerente de Planta',
+    tel:'099-502-7788', email:'balvarado@frigotecnica.ec',
+    solicitud:'hoy', fechaRegistro: new Date().toISOString(),
+    notas:'Turnos rotativos 24h. Requieren servicio nocturno con menú caliente.',
+    requisitos:['ISO 22000','Certificado BPM','Permiso ARCSA','Personal disponible 24h','Seguro civil'],
+    web:'www.frigotecnica.ec', direccion:'Parque Industrial Pascuales, Guayaquil',
+    nuevo:true, fuente:'Licitación SERCOP'
+  },
+  {
+    id:18, nombre:'Distribuidora DISAN S.A.', ruc:'0990445890001', sector:'Comercio',
+    ciudad:'Guayaquil', zona:'Guasmo Sur — Av. 25 de Julio', personas:115,
+    tipoServicio:'autoservicio', modalidadBusqueda:'busqueda',
+    prioridad:'media', contacto:'Sr. Antonio Ávila', cargo:'Gerente Comercial',
+    tel:'099-618-2200', email:'aavila@disan.ec',
+    solicitud:'hace 5 días', fechaRegistro: new Date(Date.now()-5*86400000).toISOString(),
+    notas:'Requieren servicio in situ con montaje de buffet diario.',
+    requisitos:['Certificado BPM','Permiso Municipal','Seguro de accidentes'],
+    web:'', direccion:'Av. 25 de Julio, Guasmo, Guayaquil',
+    fuente:'Contacto directo'
+  },
+];
+
+const logoColors=[
+  {bg:'#EEEDFE',fg:'#3C3489'},{bg:'#E1F5EE',fg:'#085041'},{bg:'#FAECE7',fg:'#712B13'},
+  {bg:'#E6F1FB',fg:'#0C447C'},{bg:'#FAEEDA',fg:'#633806'},{bg:'#FCEBEB',fg:'#791F1F'},
+  {bg:'#EAF3DE',fg:'#27500A'},{bg:'#FBEAF0',fg:'#72243E'},{bg:'#FFF7ED',fg:'#7C2D12'},
+];
+
+// ─── STORAGE ──────────────────────────────────────────────────────────────────
+const GS_URL = 'https://script.google.com/macros/s/AKfycbw-j2kUip6IUqcYdtr_FnhJDmE4fpuSMRiXsP_nJkYu78gn60DqmmHpNIJiNwVRsGNQ2w/exec';
+
+// localStorage como caché offline
+function loadEmpresas() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) { const p = JSON.parse(stored); if (p.length > 0) return p; }
+  } catch(e){}
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(datosBase));
+  return datosBase;
+}
+function saveEmpresas(list) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch(e){}
+}
+let empresas = loadEmpresas();
+
+// ─── GOOGLE SHEETS SYNC ───────────────────────────────────────────────────────
+// Convierte array de objetos → filas [header, ...rows]
+function objsToRows(arr){
+  if(!arr||arr.length===0) return [['_empty']];
+  const keys=Object.keys(arr[0]);
+  return [keys, ...arr.map(o=>keys.map(k=>{
+    const v=o[k];
+    if(v===null||v===undefined) return '';
+    if(typeof v==='object') return JSON.stringify(v);
+    return v;
+  }))];
+}
+
+// Convierte filas de Sheets → array de objetos
+function rowsToObjs(rows){
+  if(!rows||rows.length<2) return [];
+  const headers=rows[0];
+  if(headers[0]==='_empty') return [];
+  return rows.slice(1).map(row=>{
+    const obj={};
+    headers.forEach((h,i)=>{
+      let val=row[i]??'';
+      // intentar parsear JSON para arrays
+      if(typeof val==='string'&&(val.startsWith('[')||val.startsWith('{'))){
+        try{ val=JSON.parse(val); }catch(e){}
+      }
+      // convertir números
+      if(typeof val==='string'&&val!==''&&!isNaN(val)) val=Number(val);
+      obj[h]=val;
+    });
+    return obj;
+  });
+}
+
+async function gsRead(sheet){
+  try{
+    const url=GS_URL+'?action=read&sheet='+encodeURIComponent(sheet);
+    const res=await fetch(url);
+    const json=await res.json();
+    if(json.ok) return rowsToObjs(json.data);
+    return null;
+  }catch(e){ return null; }
+}
+
+async function gsWrite(sheet, arr){
+  try{
+    const rows=objsToRows(arr);
+    await fetch(GS_URL, {
+      method:'POST',
+      body: JSON.stringify({rows}),
+      headers:{'Content-Type':'application/json'},
+    });
+  }catch(e){}
+}
+
+// ─── MIS PROSPECTOS con sync ──────────────────────────────────────────────────
+const MP_KEY='paprika_misprospectos_v1';
+let misProspectos=[];
+function loadMisProspectos(){ try{ const s=localStorage.getItem(MP_KEY); return s?JSON.parse(s):[]; }catch(e){ return []; } }
+function saveMisProspectos(list){
+  try{ localStorage.setItem(MP_KEY,JSON.stringify(list)); }catch(e){}
+  gsWrite('misprospectos', list); // sync a Sheets
+}
+misProspectos=loadMisProspectos();
+
+// ─── FERIAS con sync ──────────────────────────────────────────────────────────
+const FERIAS_KEY='paprika_ferias_v2';
+const FERIAS_UPDATED='08 Jun 2026, 10:00';
+function loadFeriasLocal(){
+  try{ const s=localStorage.getItem(FERIAS_KEY); if(s){ const p=JSON.parse(s); if(p.length>0) return p; } }catch(e){}
+  const seed=feriasSeed();
+  localStorage.setItem(FERIAS_KEY,JSON.stringify(seed));
+  return seed;
+}
+function saveFerias(list){
+  try{ localStorage.setItem(FERIAS_KEY,JSON.stringify(list)); }catch(e){}
+  gsWrite('ferias', list);
+}
+let ferias=loadFeriasLocal();
+
+// migrar esManual legacy
+(function migrarManual(){
+  const legacy=empresas.filter(e=>e.esManual||e.fuente==='Ingreso Manual');
+  if(legacy.length===0) return;
+  const idsExistentes=new Set(misProspectos.map(x=>String(x.id)));
+  legacy.forEach(e=>{ if(!idsExistentes.has(String(e.id))) misProspectos.push(e); });
+  saveMisProspectos(misProspectos);
+  empresas=empresas.filter(e=>!(e.esManual||e.fuente==='Ingreso Manual'));
+  saveEmpresas(empresas);
+})();
+
+// ─── SYNC INICIAL desde Google Sheets ────────────────────────────────────────
+function showSyncBanner(msg, color){
+  let b=document.getElementById('syncBanner');
+  if(!b){ b=document.createElement('div'); b.id='syncBanner';
+    b.style.cssText='position:fixed;bottom:16px;right:16px;padding:10px 16px;border-radius:10px;font-size:12px;font-weight:600;z-index:999;transition:opacity .4s;box-shadow:0 2px 8px rgba(0,0,0,.15);';
+    document.body.appendChild(b); }
+  b.textContent=msg; b.style.background=color; b.style.color='#fff'; b.style.opacity='1';
+  setTimeout(()=>{ b.style.opacity='0'; }, 3500);
+}
+
+async function syncFromSheets(){
+  showSyncBanner('🔄 Sincronizando con Google Sheets…', '#185FA5');
+  let changed=false;
+
+  // Mis Prospectos
+  const mpRemote=await gsRead('misprospectos');
+  if(mpRemote && mpRemote.length>0){
+    misProspectos=mpRemote;
+    try{ localStorage.setItem(MP_KEY,JSON.stringify(misProspectos)); }catch(e){}
+    changed=true;
+  } else if(misProspectos.length>0){
+    // primera vez: subir datos locales
+    await gsWrite('misprospectos', misProspectos);
+  }
+
+  // Ferias
+  const fRemote=await gsRead('ferias');
+  if(fRemote && fRemote.length>0){
+    ferias=fRemote;
+    try{ localStorage.setItem(FERIAS_KEY,JSON.stringify(ferias)); }catch(e){}
+    changed=true;
+  } else {
+    await gsWrite('ferias', ferias);
+  }
+
+  if(changed){
+    showSyncBanner('✅ Datos sincronizados con Google Sheets', '#1D9E75');
+    // refrescar vista activa si es misprospectos o ferias
+    const activePill=document.querySelector('.pill.active');
+    if(activePill){
+      const sec=document.getElementById('extraSection');
+      if(activePill.textContent.includes('Mis Prospectos')&&sec.style.display!=='none')
+        sec.innerHTML=renderMisProspectos();
+      if(activePill.textContent.includes('Ferias')&&sec.style.display!=='none')
+        sec.innerHTML=renderFerias();
+      if(activePill.textContent.includes('Lista de Contactos')&&sec.style.display!=='none')
+        sec.innerHTML=renderContactos();
+    }
+    updateStats();
+    filterAndRender();
+  } else {
+    showSyncBanner('✅ Conectado a Google Sheets', '#1D9E75');
+  }
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+let sortOrder = 'prioridad';
+let currentPage = 1;
+const PER_PAGE = 6;
+
+function initials(n){ return n.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+function cityBadge(c){
+  if(c==='Guayaquil') return '<span class="badge badge-city-gye">Guayaquil</span>';
+  if(c==='Durán') return '<span class="badge badge-city-dur">Durán</span>';
+  if(c==='Pascuales') return '<span class="badge" style="background:#F3F0FF;color:#3C3489;">Pascuales</span>';
+  return '<span class="badge badge-city-dau">Daule</span>';
+}
+function modalidadLabel(m){
+  if(m==='licitacion') return '<span class="badge badge-licitacion">📋 En licitación</span>';
+  if(m==='cartera') return '<span class="badge badge-cartera">📁 Con cartera</span>';
+  return '<span class="badge" style="background:#F3F0FF;color:#5B21B6;">🔍 Búsqueda abierta</span>';
+}
+function servicioLabel(t){
+  const map={cocina:'🍳 Cocina en sitio',autoservicio:'🍽 Autoservicio',descartable:'📦 Envases descartables',merienda:'🥪 Meriendas'};
+  return map[t]||t;
+}
+function now(){ return new Date().toLocaleString('es-EC',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}); }
+
+// ─── STATS UPDATE ─────────────────────────────────────────────────────────────
+function updateStats(){
+  document.getElementById('stat-total').textContent = empresas.length;
+  document.getElementById('stat-urgente').textContent = empresas.filter(e=>e.prioridad==='alta').length;
+  document.getElementById('stat-gye').textContent = empresas.filter(e=>e.ciudad==='Guayaquil').length;
+  document.getElementById('stat-dur').textContent = empresas.filter(e=>e.ciudad==='Durán'||e.ciudad==='Daule'||e.ciudad==='Pascuales').length;
+  document.getElementById('cb-gye').textContent = empresas.filter(e=>e.ciudad==='Guayaquil').length;
+  document.getElementById('cb-dur').textContent = empresas.filter(e=>e.ciudad==='Durán').length;
+  document.getElementById('cb-dau').textContent = empresas.filter(e=>e.ciudad==='Daule').length;
+  document.getElementById('cb-pas').textContent = empresas.filter(e=>e.ciudad==='Pascuales').length;
+  document.getElementById('cb-alta').textContent = empresas.filter(e=>e.prioridad==='alta').length;
+  document.getElementById('cb-media').textContent = empresas.filter(e=>e.prioridad==='media').length;
+  document.getElementById('cb-baja').textContent = empresas.filter(e=>e.prioridad==='baja').length;
+  document.getElementById('lastUpdate').textContent = now();
+}
+
+// ─── FILTER & RENDER ──────────────────────────────────────────────────────────
+function getFiltered(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const gye=document.getElementById('f-gye').checked;
+  const dur=document.getElementById('f-dur').checked;
+  const dau=document.getElementById('f-dau').checked;
+  const pas=document.getElementById('f-pas').checked;
+  const alta=document.getElementById('f-alta').checked;
+  const media=document.getElementById('f-media').checked;
+  const baja=document.getElementById('f-baja').checked;
+  const fLic=document.getElementById('f-licitacion').checked;
+  const fCar=document.getElementById('f-cartera').checked;
+  const fBus=document.getElementById('f-busqueda').checked;
+  const fCoc=document.getElementById('f-cocina').checked;
+  const fAut=document.getElementById('f-autoservicio').checked;
+  const fDes=document.getElementById('f-descartable').checked;
+  const fMer=document.getElementById('f-merienda').checked;
+  const sector=document.getElementById('f-sector').value;
+  const size=parseInt(document.getElementById('f-size').value)||0;
+
+  let list = empresas.filter(e=>{
+    if(e.esManual||e.fuente==='Ingreso Manual') return false; // van a Mis Prospectos
+    const matchQ=!q||e.nombre.toLowerCase().includes(q)||e.sector.toLowerCase().includes(q)||e.ciudad.toLowerCase().includes(q)||e.zona.toLowerCase().includes(q);
+    const matchCity=(e.ciudad==='Guayaquil'&&gye)||(e.ciudad==='Durán'&&dur)||(e.ciudad==='Daule'&&dau)||(e.ciudad==='Pascuales'&&pas);
+    const matchPri=(e.prioridad==='alta'&&alta)||(e.prioridad==='media'&&media)||(e.prioridad==='baja'&&baja);
+    const matchMod=(e.modalidadBusqueda==='licitacion'&&fLic)||(e.modalidadBusqueda==='cartera'&&fCar)||(e.modalidadBusqueda==='busqueda'&&fBus);
+    const matchTipo=(e.tipoServicio==='cocina'&&fCoc)||(e.tipoServicio==='autoservicio'&&fAut)||(e.tipoServicio==='descartable'&&fDes)||(e.tipoServicio==='merienda'&&fMer);
+    const matchSector=!sector||e.sector===sector;
+    const matchSize=e.personas>=size;
+    return matchQ&&matchCity&&matchPri&&matchMod&&matchTipo&&matchSector&&matchSize;
+  });
+
+  if(sortOrder==='personas') list.sort((a,b)=>b.personas-a.personas);
+  else if(sortOrder==='nombre') list.sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  else if(sortOrder==='prioridad') list.sort((a,b)=>['alta','media','baja'].indexOf(a.prioridad)-['alta','media','baja'].indexOf(b.prioridad));
+  else if(sortOrder==='reciente') list.sort((a,b)=>new Date(b.fechaRegistro)-new Date(a.fechaRegistro));
+  return list;
+}
+
+function filterAndRender(){
+  currentPage=1;
+  renderCards(getFiltered());
+}
+
+function renderCards(list){
+  const grid=document.getElementById('cardsGrid');
+  document.getElementById('visible-count').textContent=list.length;
+  const totalPages=Math.max(1,Math.ceil(list.length/PER_PAGE));
+  if(currentPage>totalPages) currentPage=totalPages;
+  const page=list.slice((currentPage-1)*PER_PAGE,currentPage*PER_PAGE);
+
+  grid.innerHTML=page.map(e=>{
+    const idx=empresas.findIndex(x=>x.id===e.id);
+    const lc=logoColors[idx%logoColors.length];
+    const dot=e.prioridad==='alta'?'dot-alta':e.prioridad==='media'?'dot-media':'dot-baja';
+    const pri=e.prioridad==='alta'?'priority':'';
+    return `
+    <div class="company-card ${pri}" onclick="openDetalle(${e.id})">
+      <div class="urgency-dot ${dot}"></div>
+      <div class="card-top">
+        <div class="company-logo" style="background:${lc.bg};color:${lc.fg};">${initials(e.nombre)}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="card-title">${e.nombre}</div>
+          <div class="card-sub">${e.sector} · ${e.zona}</div>
+        </div>
+      </div>
+      <div class="card-badges">
+        ${cityBadge(e.ciudad)}
+        <span class="badge badge-sector">${e.sector}</span>
+        ${modalidadLabel(e.modalidadBusqueda)}
+        ${e.prioridad==='alta'?'<span class="badge badge-urgente">🔥 Urgente</span>':''}
+        ${e.nuevo?'<span class="badge badge-nuevo">Nuevo</span>':''}
+      </div>
+      <div class="card-info">
+        <div class="info-item"><strong>${servicioLabel(e.tipoServicio)}</strong>Tipo de servicio</div>
+        <div class="info-item"><strong>${e.solicitud}</strong>Solicitud recibida</div>
+        <div class="info-item"><strong>${e.requisitos.length} requisito${e.requisitos.length!==1?'s':''}</strong>Requerimientos</div>
+        <div class="info-item"><strong>${e.fuente}</strong>Fuente</div>
+      </div>
+      <div class="card-footer">
+        <span class="personas-pill">👥 ${e.personas} personas</span>
+        <button class="contact-btn" onclick="event.stopPropagation();openContactar(${e.id})">Contactar</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  renderPagination(totalPages);
+}
+
+function renderPagination(total){
+  const c=document.getElementById('paginationContainer');
+  let h=`<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled style="opacity:.4"':''}>&#8592;</button>`;
+  for(let p=1;p<=total;p++) h+=`<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+  h+=`<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===total?'disabled style="opacity:.4"':''}>&#8594;</button>`;
+  c.innerHTML=h;
+}
+function goPage(p){
+  const list=getFiltered();
+  const total=Math.max(1,Math.ceil(list.length/PER_PAGE));
+  if(p<1||p>total) return;
+  currentPage=p;
+  renderCards(list);
+  document.querySelector('.content').scrollTo({top:0,behavior:'smooth'});
+}
+
+// ─── MODAL DETALLE ────────────────────────────────────────────────────────────
+function openDetalle(id){
+  const e=empresas.find(x=>x.id===id);
+  if(!e) return;
+  const idx=empresas.findIndex(x=>x.id===id);
+  const lc=logoColors[idx%logoColors.length];
+  document.getElementById('modalContent').innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem;">
+      <div style="width:50px;height:50px;border-radius:12px;background:${lc.bg};color:${lc.fg};display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;flex-shrink:0;">${initials(e.nombre)}</div>
+      <div>
+        <h2 style="font-family:'DM Serif Display',serif;font-size:19px;">${e.nombre}</h2>
+        <div style="font-size:12px;color:#888780;">${e.sector} · ${e.zona}</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:1rem;">
+      ${cityBadge(e.ciudad)} ${modalidadLabel(e.modalidadBusqueda)}
+      <span class="badge badge-sector">${e.sector}</span>
+      ${e.prioridad==='alta'?'<span class="badge badge-urgente">🔥 Alta prioridad</span>':''}
+      ${e.nuevo?'<span class="badge badge-nuevo">Nuevo</span>':''}
+    </div>
+
+    <div class="modal-section">
+      <h4>Identificación de la empresa</h4>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="dl">RUC</div><div class="dv">${e.ruc||'—'}</div></div>
+        <div class="detail-item"><div class="dl">Sector / Industria</div><div class="dv">${e.sector}</div></div>
+        <div class="detail-item" style="grid-column:span 2"><div class="dl">Dirección</div><div class="dv">${e.direccion||'—'}</div></div>
+        ${e.web?`<div class="detail-item" style="grid-column:span 2"><div class="dl">Sitio web</div><div class="dv"><a href="http://${e.web}" target="_blank" style="color:var(--blue);">${e.web}</a></div></div>`:''}
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <h4>Contacto</h4>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="dl">Responsable</div><div class="dv">${e.contacto}</div></div>
+        <div class="detail-item"><div class="dl">Cargo</div><div class="dv">${e.cargo||'—'}</div></div>
+        <div class="detail-item"><div class="dl">Teléfono</div><div class="dv">${e.tel}</div></div>
+        <div class="detail-item"><div class="dl">Correo</div><div class="dv">${e.email?`<a href="mailto:${e.email}" style="color:var(--blue);">${e.email}</a>`:'<span style="color:#bbb;font-size:11px;">No registrado</span>'}</div></div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <h4>Servicio solicitado</h4>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="dl">Tipo de servicio</div><div class="dv">${servicioLabel(e.tipoServicio)}</div></div>
+        <div class="detail-item"><div class="dl">N.° colaboradores</div><div class="dv">👥 ${e.personas} personas</div></div>
+        <div class="detail-item"><div class="dl">Estado de búsqueda</div><div class="dv">${e.modalidadBusqueda==='licitacion'?'📋 En proceso de licitación':e.modalidadBusqueda==='cartera'?'📁 Tiene cartera de proveedores':'🔍 Búsqueda abierta'}</div></div>
+        <div class="detail-item"><div class="dl">Solicitud recibida</div><div class="dv">${e.solicitud}</div></div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <h4>Requisitos exigidos al proveedor</h4>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
+        ${e.requisitos.map(r=>`<span class="tag-req">✓ ${r}</span>`).join('')}
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <h4>Notas internas</h4>
+      <div style="background:var(--gray-light);border-radius:8px;padding:11px 13px;font-size:13px;line-height:1.6;">${e.notas}</div>
+    </div>
+
+    <div class="modal-section">
+      <h4>Fuente de información</h4>
+      <div class="source-note">📌 ${e.fuente}</div>
+    </div>
+
+    <div style="margin-top:1.25rem;display:flex;gap:8px;">
+      <button style="flex:1;background:var(--orange);color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;" onclick="openContactar(${e.id})">📞 Contactar</button>
+      <button style="flex:1;background:var(--blue-light);color:var(--blue);border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;" onclick="openPropuesta(${e.id})">📋 Crear propuesta</button>
+    </div>`;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+// ─── CONTACTAR ────────────────────────────────────────────────────────────────
+function openContactar(id){
+  const e=empresas.find(x=>x.id===id);
+  document.getElementById('modalContent').innerHTML=`
+    <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+    <h2 style="margin-bottom:4px;">📞 Contactar empresa</h2>
+    <p style="font-size:12px;color:#888780;margin-bottom:1rem;">${e.nombre} · ${e.contacto} (${e.cargo||''})</p>
+    <div style="display:grid;gap:7px;margin-bottom:1rem;">
+      <div style="background:var(--orange-light);border-radius:10px;padding:11px 14px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:20px;">📱</span>
+        <div><div style="font-size:10px;color:#888780;">Teléfono</div><div style="font-size:15px;font-weight:700;color:var(--orange);">${e.tel}</div></div>
+        <a href="tel:${e.tel}" style="margin-left:auto;background:var(--orange);color:#fff;border-radius:7px;padding:6px 13px;font-size:12px;font-weight:600;text-decoration:none;">Llamar</a>
+      </div>
+      <div style="background:var(--blue-light);border-radius:10px;padding:11px 14px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:20px;">💬</span>
+        <div><div style="font-size:10px;color:#888780;">WhatsApp</div><div style="font-size:14px;font-weight:600;color:var(--blue);">${e.tel}</div></div>
+        <a href="https://wa.me/593${e.tel.replace(/\D/g,'').replace(/^0/,'')}" target="_blank" style="margin-left:auto;background:#25D366;color:#fff;border-radius:7px;padding:6px 13px;font-size:12px;font-weight:600;text-decoration:none;">WhatsApp</a>
+      </div>
+      ${e.email?`
+      <div style="background:var(--green-light);border-radius:10px;padding:11px 14px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:20px;">✉️</span>
+        <div><div style="font-size:10px;color:#888780;">Correo electrónico</div><div style="font-size:13px;font-weight:600;color:var(--green);">${e.email}</div></div>
+        <button onclick="enviarEmail(${e.id})" style="margin-left:auto;background:var(--green);color:#fff;border:none;border-radius:7px;padding:6px 13px;font-size:12px;font-weight:600;cursor:pointer;">Enviar email</button>
+      </div>`:
+      `<div style="background:var(--gray-light);border-radius:10px;padding:11px 14px;display:flex;align-items:center;gap:10px;opacity:.7;">
+        <span style="font-size:20px;">✉️</span>
+        <div style="font-size:12px;color:#888780;">Sin correo registrado</div>
+        <input id="emailNuevo" type="email" placeholder="Agregar correo..." style="margin-left:auto;padding:5px 9px;border:1px solid #ddd;border-radius:6px;font-size:12px;outline:none;width:200px;">
+        <button onclick="guardarEmail(${e.id})" style="background:var(--green);color:#fff;border:none;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:600;cursor:pointer;">Guardar</button>
+      </div>`}
+    </div>
+    <div class="modal-section">
+      <h4>Registrar nota de contacto</h4>
+      <textarea id="notaContacto" placeholder="Ej: Llamé al contacto, está interesado en visita el jueves..." rows="3" style="width:100%;padding:9px;border:1px solid #ddd;border-radius:8px;font-size:13px;resize:vertical;outline:none;margin-bottom:7px;"></textarea>
+      <div style="display:flex;gap:7px;">
+        <select id="estadoContacto" style="flex:1;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;">
+          <option value="">— Estado —</option>
+          <option>Interesado, agenda visita</option>
+          <option>Solicita propuesta por correo</option>
+          <option>No disponible, rellamar</option>
+          <option>No interesado</option>
+          <option>Contrato en proceso</option>
+        </select>
+        <button onclick="guardarNota(${e.id})" style="background:var(--orange);color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;">Guardar</button>
+      </div>
+    </div>`;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function enviarEmail(id){
+  const e=empresas.find(x=>x.id===id);
+  if(!e.email){ alert('No hay correo registrado.'); return; }
+  const asunto=encodeURIComponent('Propuesta Servicio de Alimentacion - Paprika');
+  const cuerpo=encodeURIComponent('Estimado/a '+e.contacto+',\n\nMi nombre es [TU NOMBRE] y me dirijo a usted en representacion de Paprika Servicios de Alimentacion.\n\nNos interesa presentarle una propuesta para '+e.nombre+' ('+e.personas+' colaboradores).\n\nQuedo a su disposicion para coordinar una visita.\n\nAtentamente,\n[TU NOMBRE]\nPaprika Servicios de Alimentacion\nGuayaquil, Ecuador');
+  const a=document.createElement('a');
+  a.href='mailto:'+e.email+'?subject='+asunto+'&body='+cuerpo;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>document.body.removeChild(a),300);
+}
+
+function guardarEmail(id){
+  const val=document.getElementById('emailNuevo').value.trim();
+  if(!val||!val.includes('@')){ alert('Ingrese un correo válido.'); return; }
+  const idx=empresas.findIndex(x=>x.id===id);
+  empresas[idx].email=val;
+  saveEmpresas(empresas);
+  alert(`✅ Correo guardado: ${val}`);
+  openContactar(id);
+}
+
+function guardarNota(id){
+  const nota=document.getElementById('notaContacto').value.trim();
+  const estado=document.getElementById('estadoContacto').value;
+  if(!nota&&!estado){ alert('Escribe una nota o selecciona un estado.'); return; }
+  const e=empresas.find(x=>x.id===id);
+  alert(`✅ Nota guardada para ${e.nombre}:\n${estado?'📌 '+estado+'\n':''}${nota?'📝 '+nota:''}`);
+  closeModal();
+}
+
+// ─── PROPUESTA ────────────────────────────────────────────────────────────────
+function openPropuesta(id){
+  const e=empresas.find(x=>x.id===id);
+  document.getElementById('modalContent').innerHTML=`
+    <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+    <h2 style="margin-bottom:4px;">📋 Crear propuesta</h2>
+    <p style="font-size:12px;color:#888780;margin-bottom:1rem;">${e.nombre} · ${e.ciudad}</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;">
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Tipo de servicio</label>
+      <select id="p-tipo" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;">
+        <option value="cocina" ${e.tipoServicio==='cocina'?'selected':''}>Cocina en sitio</option>
+        <option value="autoservicio" ${e.tipoServicio==='autoservicio'?'selected':''}>Autoservicio</option>
+        <option value="descartable" ${e.tipoServicio==='descartable'?'selected':''}>Envases descartables</option>
+        <option value="merienda" ${e.tipoServicio==='merienda'?'selected':''}>Meriendas</option>
+      </select></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">N.° personas</label>
+      <input id="p-personas" type="number" value="${e.personas}" onchange="recalcular()" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Precio por comensal ($)</label>
+      <input id="p-precio" type="number" value="4.50" step="0.10" onchange="recalcular()" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Días laborables/mes</label>
+      <input id="p-dias" type="number" value="22" onchange="recalcular()" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+    </div>
+    <div style="background:var(--gray-light);border-radius:10px;padding:13px 15px;margin-bottom:1rem;">
+      <div style="font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#888780;margin-bottom:9px;">Resumen económico</div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;"><span style="color:#888780;">Subtotal mensual</span><span id="r-sub" style="font-weight:500;"></span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;"><span style="color:#888780;">IVA 15%</span><span id="r-iva" style="font-weight:500;"></span></div>
+      <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;border-top:1px solid rgba(0,0,0,.1);padding-top:8px;"><span>Total mensual</span><span id="r-total" style="color:var(--orange);"></span></div>
+    </div>
+    <div style="display:flex;gap:7px;">
+      <button onclick="generarPDF(${id})" style="flex:1;background:var(--orange);color:#fff;border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;">📄 Generar PDF</button>
+      <button onclick="enviarWhatsapp(${id})" style="flex:1;background:#25D366;color:#fff;border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;">📲 WhatsApp</button>
+    </div>`;
+  recalcular();
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function recalcular(){
+  const p=parseFloat(document.getElementById('p-personas').value)||0;
+  const pr=parseFloat(document.getElementById('p-precio').value)||0;
+  const d=parseFloat(document.getElementById('p-dias').value)||0;
+  const sub=(p*pr*d).toFixed(2);
+  const iva=(sub*0.15).toFixed(2);
+  const tot=(parseFloat(sub)+parseFloat(iva)).toFixed(2);
+  document.getElementById('r-sub').textContent='$'+sub;
+  document.getElementById('r-iva').textContent='$'+iva;
+  document.getElementById('r-total').textContent='$'+tot;
+}
+
+function generarPDF(id){
+  const e=empresas.find(x=>x.id===id);
+  const personas=document.getElementById('p-personas').value;
+  const precio=document.getElementById('p-precio').value;
+  const dias=document.getElementById('p-dias').value;
+  const tipo=document.getElementById('p-tipo').options[document.getElementById('p-tipo').selectedIndex].text;
+  const sub=(personas*precio*dias).toFixed(2);
+  const iva=(sub*0.15).toFixed(2);
+  const tot=(parseFloat(sub)+parseFloat(iva)).toFixed(2);
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Propuesta - ${e.nombre}</title>
+  <style>body{font-family:Arial,sans-serif;max-width:700px;margin:40px auto;color:#2c2c2a;padding:0 20px;}
+  h1{color:#D85A30;font-size:24px;margin-bottom:3px;}.sub{color:#888;font-size:13px;margin-bottom:28px;}
+  table{width:100%;border-collapse:collapse;margin:18px 0;}td,th{padding:9px 12px;border:1px solid #eee;font-size:13px;}
+  th{background:#f7f5f0;font-weight:600;text-align:left;}.total-row td{font-weight:700;font-size:15px;color:#D85A30;background:#FAECE7;}
+  .footer{margin-top:36px;font-size:11px;color:#888;border-top:1px solid #eee;padding-top:14px;}</style></head><body>
+  <h1>🌶 Propuesta Comercial — Paprika</h1>
+  <div class="sub">Servicio de Alimentación Empresarial</div>
+  <p><strong>Empresa:</strong> ${e.nombre}</p>
+  <p><strong>RUC:</strong> ${e.ruc||'—'}</p>
+  <p><strong>Ciudad:</strong> ${e.ciudad} — ${e.zona}</p>
+  <p><strong>Contacto:</strong> ${e.contacto} | ${e.tel}${e.email?' | '+e.email:''}</p>
+  <p><strong>Fecha:</strong> ${new Date().toLocaleDateString('es-EC',{day:'2-digit',month:'long',year:'numeric'})}</p>
+  <table>
+    <tr><th>Descripción</th><th>Detalle</th></tr>
+    <tr><td>Tipo de servicio</td><td>${tipo}</td></tr>
+    <tr><td>N.° de comensales</td><td>${personas} personas</td></tr>
+    <tr><td>Precio por comensal</td><td>$${parseFloat(precio).toFixed(2)}</td></tr>
+    <tr><td>Días laborables/mes</td><td>${dias} días</td></tr>
+    <tr><td>Subtotal mensual</td><td>$${sub}</td></tr>
+    <tr><td>IVA 15%</td><td>$${iva}</td></tr>
+    <tr class="total-row"><td>TOTAL MENSUAL</td><td>$${tot}</td></tr>
+  </table>
+  <p style="font-size:12px;color:#555;line-height:1.7;">Propuesta válida por <strong>15 días</strong>. Incluye personal de servicio, utensilios y transporte en Guayaquil, Durán y Daule.</p>
+  <p style="font-size:12px;color:#555;margin-top:10px;"><strong>Requisitos que cumplimos:</strong> ${e.requisitos.join(', ')}.</p>
+  <div class="footer">Paprika Servicios de Alimentación · Guayaquil, Ecuador · info@paprika.ec</div>
+  <script>window.onload=()=>window.print();<\/script></body></html>`);
+  w.document.close();
+}
+
+function enviarWhatsapp(id){
+  const e=empresas.find(x=>x.id===id);
+  const personas=document.getElementById('p-personas').value;
+  const precio=document.getElementById('p-precio').value;
+  const tipo=document.getElementById('p-tipo').options[document.getElementById('p-tipo').selectedIndex].text;
+  const sub=(personas*precio*22).toFixed(2);
+  const iva=(sub*0.15).toFixed(2);
+  const tot=(parseFloat(sub)+parseFloat(iva)).toFixed(2);
+  const msg=encodeURIComponent(`Hola ${e.contacto}, le saluda *Paprika Servicios de Alimentación*.\n\n📋 *Propuesta para ${e.nombre}*\n• Servicio: ${tipo}\n• Personas: ${personas}\n• Total mensual estimado: *$${tot}* (IVA incluido)\n\nQuedo a su disposición para coordinar una visita. 🌶`);
+  const tel=e.tel.replace(/\D/g,'').replace(/^0/,'593');
+  window.open(`https://wa.me/${tel}?text=${msg}`,'_blank');
+}
+
+
+// ─── NUEVO PROSPECTO ──────────────────────────────────────────────────────────
+function v(id){ const el=document.getElementById(id); return el?el.value.trim():''; }
+
+function guardarProspecto(){
+  const nombre=document.getElementById('np-nombre').value.trim();
+  const personas=parseInt(document.getElementById('np-personas').value)||0;
+  if(!nombre){ alert('El nombre de la empresa es obligatorio.'); return; }
+  if(personas<25){ alert('El mínimo de colaboradores es 25.'); return; }
+  const nuevo={
+    id: Date.now(),
+    nombre, ruc:v('np-ruc'), sector:v('np-sector'), ciudad:v('np-ciudad'),
+    zona:v('np-zona'), personas, direccion:v('np-direccion'),
+    tipoServicio:v('np-tipoServicio'), modalidadBusqueda:v('np-modalidad'),
+    prioridad:v('np-prioridad'), contacto:v('np-contacto'), cargo:v('np-cargo'),
+    tel:v('np-tel'), celular:v('np-celular')||'', email:v('np-email'), web:v('np-web'),
+    cumple:v('np-cumple')||'',
+    fuente:'Ingreso Manual', esManual:true,
+    requisitos:v('np-requisitos').split(',').map(r=>r.trim()).filter(Boolean),
+    notas:v('np-notas'), solicitud:'recién ingresado',
+    fechaRegistro: new Date().toISOString(), nuevo:true,
+  };
+  empresas.unshift(nuevo);
+  saveEmpresas(empresas);
+  updateStats();
+  filterAndRender();
+  closeModal();
+  // Si venimos de Lista de Contactos, refrescar esa vista
+  if(document.getElementById('extraSection').style.display!=='none'){
+    document.getElementById('extraSection').innerHTML=renderContactos();
+  }
+  alert(`✅ "${nombre}" guardado correctamente.`);
+}
+
+function openEditarProspecto(id){
+  const e=empresas.find(x=>x.id===id);
+  if(!e) return;
+  openNuevoProspectoForm(e);
+}
+
+function guardarEdicion(id){
+  const nombre=document.getElementById('np-nombre').value.trim();
+  const personas=parseInt(document.getElementById('np-personas').value)||0;
+  if(!nombre){ alert('El nombre es obligatorio.'); return; }
+  if(personas<25){ alert('El mínimo de colaboradores es 25.'); return; }
+  // check if this id is in misProspectos
+  const mpIdx=misProspectos.findIndex(x=>x.id===id);
+  if(mpIdx>=0){
+    misProspectos[mpIdx]=Object.assign({},misProspectos[mpIdx],{
+      nombre, ruc:v('np-ruc'), sector:v('np-sector'), ciudad:v('np-ciudad'),
+      zona:v('np-zona'), personas, direccion:v('np-direccion'),
+      tipoServicio:v('np-tipoServicio'), modalidadBusqueda:v('np-modalidad'),
+      prioridad:v('np-prioridad'), contacto:v('np-contacto'), cargo:v('np-cargo'),
+      tel:v('np-tel'), celular:v('np-celular')||'', email:v('np-email'), web:v('np-web'),
+      cumple:v('np-cumple')||'',
+      requisitos:v('np-requisitos').split(',').map(r=>r.trim()).filter(Boolean),
+      notas:v('np-notas'),
+    });
+    saveMisProspectos(misProspectos);
+  } else {
+    const idx=empresas.findIndex(x=>x.id===id);
+    if(idx>=0){
+      empresas[idx]=Object.assign({},empresas[idx],{
+        nombre, ruc:v('np-ruc'), sector:v('np-sector'), ciudad:v('np-ciudad'),
+        zona:v('np-zona'), personas, direccion:v('np-direccion'),
+        tipoServicio:v('np-tipoServicio'), modalidadBusqueda:v('np-modalidad'),
+        prioridad:v('np-prioridad'), contacto:v('np-contacto'), cargo:v('np-cargo'),
+        tel:v('np-tel'), celular:v('np-celular')||'', email:v('np-email'), web:v('np-web'),
+        cumple:v('np-cumple')||'',
+        requisitos:v('np-requisitos').split(',').map(r=>r.trim()).filter(Boolean),
+        notas:v('np-notas'),
+      });
+      saveEmpresas(empresas);
+      updateStats(); filterAndRender();
+    }
+  }
+  closeModal();
+  document.getElementById('extraSection').innerHTML=renderContactos();
+  alert(`✅ "${nombre}" actualizado correctamente.`);
+}
+
+function eliminarProspectoManual(id){
+  if(!confirm('¿Eliminar este prospecto?')) return;
+  empresas=empresas.filter(x=>x.id!==id);
+  saveEmpresas(empresas);
+  updateStats();
+  filterAndRender();
+  document.getElementById('extraSection').innerHTML=renderContactos();
+}
+
+// ─── SECCIONES ────────────────────────────────────────────────────────────────
+function showSection(name,el){
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  const main=document.getElementById('mainGrid');
+  const sec=document.getElementById('extraSection');
+  if(name==='prospectos'){ main.style.display='grid'; sec.style.display='none'; return; }
+  main.style.display='none'; sec.style.display='block';
+  if(name==='contratos') sec.innerHTML=renderContratos();
+  if(name==='mapa') sec.innerHTML=renderMapa();
+  if(name==='reportes') sec.innerHTML=renderReportes();
+  if(name==='ferias') sec.innerHTML=renderFerias();
+  if(name==='contactos') sec.innerHTML=renderContactos();
+  if(name==='misprospectos') sec.innerHTML=renderMisProspectos();
+}
+
+// ─── MIS PROSPECTOS (storage separado, tarjetas iguales a Prospectos) ─────────
+
+function renderMisProspectos(){
+  const PER=6;
+  const page=parseInt(sessionStorage.getItem('mp_page')||'1');
+  const total=Math.max(1,Math.ceil(misProspectos.length/PER));
+  const cur=Math.min(page,total);
+  const slice=misProspectos.slice((cur-1)*PER, cur*PER);
+
+  const tarjetas=slice.map((e,gi)=>{
+    const idx=gi; // use position for color
+    const lc=logoColors[(misProspectos.indexOf(e))%logoColors.length];
+    const dot=e.prioridad==='alta'?'dot-alta':e.prioridad==='media'?'dot-media':'dot-baja';
+    const pri=e.prioridad==='alta'?'priority':'';
+    return `<div class="company-card ${pri}" onclick="openDetalleMiProspecto(${e.id})">
+      <div class="urgency-dot ${dot}"></div>
+      <div class="card-top">
+        <div class="company-logo" style="background:${lc.bg};color:${lc.fg};">${initials(e.nombre)}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="card-title">${e.nombre}</div>
+          <div class="card-sub">${e.sector||'—'} · ${e.zona||e.ciudad}</div>
+        </div>
+      </div>
+      <div class="card-badges">
+        ${cityBadge(e.ciudad)}
+        <span class="badge badge-sector">${e.sector||'—'}</span>
+        ${modalidadLabel(e.modalidadBusqueda||'busqueda')}
+        ${e.prioridad==='alta'?'<span class="badge badge-urgente">🔥 Urgente</span>':''}
+        <span class="badge badge-nuevo" style="background:#EAF3DE;color:#27500A;">⭐ Manual</span>
+      </div>
+      <div class="card-info">
+        <div class="info-item"><strong>${servicioLabel(e.tipoServicio||'cocina')}</strong>Tipo de servicio</div>
+        <div class="info-item"><strong>${e.solicitud||'—'}</strong>Solicitud</div>
+        <div class="info-item"><strong>${(e.requisitos||[]).length} requisito${(e.requisitos||[]).length!==1?'s':''}</strong>Requerimientos</div>
+        <div class="info-item"><strong>${e.contacto||'—'}</strong>Contacto</div>
+      </div>
+      <div class="card-footer">
+        <span class="personas-pill">👥 ${e.personas} personas</span>
+        <div style="display:flex;gap:5px;">
+          <button class="contact-btn" onclick="event.stopPropagation();openEditarMiProspecto(${e.id})">✏️ Editar</button>
+          <button onclick="event.stopPropagation();eliminarMiProspecto(${e.id})" style="font-size:12px;font-weight:500;color:#791F1F;background:#FCEBEB;border:none;border-radius:6px;padding:4px 11px;cursor:pointer;">🗑</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // pagination
+  let pag=`<button class="page-btn" onclick="mpPage(${cur-1})" ${cur===1?'disabled style="opacity:.4"':''}>&#8592;</button>`;
+  for(let p=1;p<=total;p++) pag+=`<button class="page-btn ${p===cur?'active':''}" onclick="mpPage(${p})">${p}</button>`;
+  pag+=`<button class="page-btn" onclick="mpPage(${cur+1})" ${cur===total?'disabled style="opacity:.4"':''}>&#8594;</button>`;
+
+  return `<div style="display:grid;grid-template-columns:270px 1fr;min-height:calc(100vh - 60px);">
+    <!-- mini sidebar -->
+    <div style="background:#fff;border-right:1px solid var(--border);padding:1.25rem;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:1.25rem;">
+        <div class="stat-box orange"><div class="n">${misProspectos.length}</div><div class="l">Total</div></div>
+        <div class="stat-box green"><div class="n">${misProspectos.filter(e=>e.prioridad==='alta').length}</div><div class="l">Alta prioridad</div></div>
+        <div class="stat-box"><div class="n">${misProspectos.filter(e=>e.ciudad==='Guayaquil').length}</div><div class="l">Guayaquil</div></div>
+        <div class="stat-box"><div class="n">${misProspectos.filter(e=>e.ciudad!=='Guayaquil').length}</div><div class="l">Otras ciudades</div></div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);background:var(--gray-light);border-radius:8px;padding:10px 12px;line-height:1.6;">
+        ⭐ <strong>Mis Prospectos</strong> contiene solo las empresas que ingresaste manualmente. No aparecen en la pestaña principal de Prospectos.
+      </div>
+    </div>
+    <!-- content -->
+    <div style="padding:1.25rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+        <div>
+          <div style="font-size:13px;color:var(--text-muted);">Mostrando <strong style="color:var(--text);">${misProspectos.length}</strong> empresas ingresadas manualmente</div>
+        </div>
+        <button onclick="openNuevoMiProspecto()" style="background:var(--orange);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px;">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo prospecto
+        </button>
+      </div>
+      ${misProspectos.length===0
+        ? `<div style="text-align:center;padding:3rem;color:#888780;background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);">
+            <div style="font-size:42px;margin-bottom:12px;">⭐</div>
+            <div style="font-size:15px;font-weight:500;margin-bottom:6px;">Aún no hay prospectos ingresados</div>
+            <div style="font-size:13px;">Haz clic en "Nuevo prospecto" para agregar el primero</div>
+          </div>`
+        : `<div class="cards-grid">${tarjetas}</div>`}
+      <div class="pagination" style="margin-top:1.25rem;">${pag}</div>
+    </div>
+  </div>`;
+}
+
+function mpPage(p){
+  const total=Math.max(1,Math.ceil(misProspectos.length/6));
+  if(p<1||p>total) return;
+  sessionStorage.setItem('mp_page',p);
+  document.getElementById('extraSection').innerHTML=renderMisProspectos();
+}
+
+function openDetalleMiProspecto(id){
+  const e=misProspectos.find(x=>x.id===id); if(!e) return;
+  const lc=logoColors[misProspectos.indexOf(e)%logoColors.length];
+  document.getElementById('modalContent').innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem;">
+      <div style="width:50px;height:50px;border-radius:12px;background:${lc.bg};color:${lc.fg};display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;flex-shrink:0;">${initials(e.nombre)}</div>
+      <div><h2 style="font-family:'DM Serif Display',serif;font-size:19px;">${e.nombre}</h2>
+      <div style="font-size:12px;color:#888780;">${e.sector||'—'} · ${e.zona||e.ciudad}</div></div>
+    </div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:1rem;">
+      ${cityBadge(e.ciudad)} ${modalidadLabel(e.modalidadBusqueda||'busqueda')}
+      <span class="badge badge-sector">${e.sector||'—'}</span>
+      ${e.prioridad==='alta'?'<span class="badge badge-urgente">🔥 Alta prioridad</span>':''}
+    </div>
+    <div class="modal-section"><h4>Identificación</h4>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="dl">RUC</div><div class="dv">${e.ruc||'—'}</div></div>
+        <div class="detail-item"><div class="dl">Sector</div><div class="dv">${e.sector||'—'}</div></div>
+        <div class="detail-item" style="grid-column:span 2"><div class="dl">Dirección</div><div class="dv">${e.direccion||'—'}</div></div>
+        ${e.web?`<div class="detail-item" style="grid-column:span 2"><div class="dl">Web</div><div class="dv"><a href="http://${e.web}" target="_blank" style="color:var(--blue);">${e.web}</a></div></div>`:''}
+      </div></div>
+    <div class="modal-section"><h4>Contacto</h4>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="dl">Responsable</div><div class="dv">${e.contacto||'—'}</div></div>
+        <div class="detail-item"><div class="dl">Cargo</div><div class="dv">${e.cargo||'—'}</div></div>
+        <div class="detail-item"><div class="dl">Teléfono</div><div class="dv">${e.tel||'—'}</div></div>
+        <div class="detail-item"><div class="dl">Celular</div><div class="dv">${e.celular||'—'}</div></div>
+        <div class="detail-item" style="grid-column:span 2"><div class="dl">Correo</div><div class="dv">${e.email?`<a href="mailto:${e.email}" style="color:var(--blue);">${e.email}</a>`:'<span style="color:#bbb;">No registrado</span>'}</div></div>
+      </div></div>
+    <div class="modal-section"><h4>Servicio solicitado</h4>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="dl">Tipo</div><div class="dv">${servicioLabel(e.tipoServicio||'cocina')}</div></div>
+        <div class="detail-item"><div class="dl">Colaboradores</div><div class="dv">👥 ${e.personas}</div></div>
+        <div class="detail-item"><div class="dl">Estado búsqueda</div><div class="dv">${e.modalidadBusqueda==='licitacion'?'📋 En licitación':e.modalidadBusqueda==='cartera'?'📁 Con cartera':'🔍 Búsqueda abierta'}</div></div>
+        <div class="detail-item"><div class="dl">Prioridad</div><div class="dv" style="text-transform:capitalize;">${e.prioridad||'—'}</div></div>
+      </div></div>
+    ${(e.requisitos||[]).length?`<div class="modal-section"><h4>Requisitos al proveedor</h4><div style="display:flex;flex-wrap:wrap;gap:4px;">${e.requisitos.map(r=>`<span class="tag-req">✓ ${r}</span>`).join('')}</div></div>`:''}
+    ${e.notas?`<div class="modal-section"><h4>Notas</h4><div style="background:var(--gray-light);border-radius:8px;padding:11px 13px;font-size:13px;line-height:1.6;">${e.notas}</div></div>`:''}
+    <div style="margin-top:1.25rem;display:flex;gap:8px;">
+      <button onclick="openEditarMiProspecto(${e.id})" style="flex:1;background:var(--blue-light);color:var(--blue);border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;">✏️ Editar</button>
+      <button onclick="openContactarMiProspecto(${e.id})" style="flex:1;background:var(--orange);color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;">📞 Contactar</button>
+      <button onclick="openPropuestaMiProspecto(${e.id})" style="flex:1;background:var(--blue-light);color:var(--blue);border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;">📋 Propuesta</button>
+    </div>`;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function openNuevoMiProspecto(){ openMiProspectoForm(null); }
+function openEditarMiProspecto(id){ openMiProspectoForm(misProspectos.find(x=>x.id===id)); }
+
+function openMiProspectoForm(datos){
+  const d=datos||{}; const esEdicion=!!datos;
+  const sel=(val,opt)=>val===opt?'selected':'';
+  document.getElementById('modalContent').innerHTML=`
+    <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+    <h2 style="margin-bottom:8px;">${esEdicion?'✏️ Editar prospecto':'⭐ Nuevo prospecto'}</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div style="grid-column:span 2"><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Nombre de la empresa *</label><input id="mp-nombre" value="${d.nombre||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">RUC</label><input id="mp-ruc" value="${d.ruc||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Sector</label>
+        <select id="mp-sector" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;">
+          <option ${sel(d.sector,'Industrial')}>Industrial</option><option ${sel(d.sector,'Manufactura')}>Manufactura</option>
+          <option ${sel(d.sector,'Logística')}>Logística</option><option ${sel(d.sector,'Construcción')}>Construcción</option>
+          <option ${sel(d.sector,'Salud')}>Salud</option><option ${sel(d.sector,'Educación')}>Educación</option><option ${sel(d.sector,'Comercio')}>Comercio</option>
+        </select></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Ciudad</label>
+        <select id="mp-ciudad" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;">
+          <option ${sel(d.ciudad,'Guayaquil')}>Guayaquil</option><option ${sel(d.ciudad,'Durán')}>Durán</option>
+          <option ${sel(d.ciudad,'Daule')}>Daule</option><option ${sel(d.ciudad,'Pascuales')}>Pascuales</option><option ${sel(d.ciudad,'Samborondón')}>Samborondón</option>
+        </select></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Zona / Sector</label><input id="mp-zona" value="${d.zona||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div style="grid-column:span 2"><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Dirección</label><input id="mp-direccion" value="${d.direccion||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">N.° colaboradores (mín. 25)</label><input id="mp-personas" type="number" value="${d.personas||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Tipo de servicio</label>
+        <select id="mp-tipoServicio" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;">
+          <option value="cocina" ${sel(d.tipoServicio,'cocina')}>Cocina en sitio</option>
+          <option value="autoservicio" ${sel(d.tipoServicio,'autoservicio')}>Autoservicio</option>
+          <option value="descartable" ${sel(d.tipoServicio,'descartable')}>Envases descartables</option>
+          <option value="merienda" ${sel(d.tipoServicio,'merienda')}>Meriendas</option>
+        </select></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Estado de búsqueda</label>
+        <select id="mp-modalidad" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;">
+          <option value="licitacion" ${sel(d.modalidadBusqueda,'licitacion')}>En licitación</option>
+          <option value="cartera" ${sel(d.modalidadBusqueda,'cartera')}>Con cartera de proveedores</option>
+          <option value="busqueda" ${sel(d.modalidadBusqueda,'busqueda')}>Búsqueda abierta</option>
+        </select></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Prioridad</label>
+        <select id="mp-prioridad" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;">
+          <option value="alta" ${sel(d.prioridad,'alta')}>Alta</option>
+          <option value="media" ${sel(d.prioridad,'media')}>Media</option>
+          <option value="baja" ${sel(d.prioridad,'baja')}>Baja</option>
+        </select></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Nombre del contacto</label><input id="mp-contacto" value="${d.contacto||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Cargo</label><input id="mp-cargo" value="${d.cargo||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Teléfono fijo</label><input id="mp-tel" value="${d.tel||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Celular</label><input id="mp-celular" value="${d.celular||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div style="grid-column:span 2"><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Correo electrónico</label><input id="mp-email" type="email" value="${d.email||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Sitio web</label><input id="mp-web" value="${d.web||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Cumpleaños del contacto</label><input id="mp-cumple" type="date" value="${d.cumple||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+    </div>
+    <div style="margin-top:8px;"><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Requisitos al proveedor (separados por coma)</label>
+      <input id="mp-requisitos" value="${(d.requisitos||[]).join(', ')}" placeholder="Ej: Certificado BPM, Permiso ARCSA" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+    <div style="margin-top:8px;"><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Notas adicionales</label>
+      <textarea id="mp-notas" rows="3" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;resize:vertical;outline:none;">${d.notas||''}</textarea></div>
+    <button onclick="${esEdicion?'guardarEdicionMiProspecto('+d.id+')':'guardarNuevoMiProspecto()'}" style="margin-top:12px;width:100%;background:var(--orange);color:#fff;border:none;border-radius:8px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;">${esEdicion?'💾 Guardar cambios':'💾 Guardar prospecto'}</button>`;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function vmp(id){ const el=document.getElementById(id); return el?el.value.trim():''; }
+function recogerMiProspecto(id){
+  return {
+    id:id||Date.now(), nombre:vmp('mp-nombre'), ruc:vmp('mp-ruc'), sector:vmp('mp-sector'),
+    ciudad:vmp('mp-ciudad'), zona:vmp('mp-zona'), personas:parseInt(vmp('mp-personas'))||0,
+    direccion:vmp('mp-direccion'), tipoServicio:vmp('mp-tipoServicio'),
+    modalidadBusqueda:vmp('mp-modalidad'), prioridad:vmp('mp-prioridad'),
+    contacto:vmp('mp-contacto'), cargo:vmp('mp-cargo'), tel:vmp('mp-tel'),
+    celular:vmp('mp-celular'), email:vmp('mp-email'), web:vmp('mp-web'), cumple:vmp('mp-cumple'),
+    requisitos:vmp('mp-requisitos').split(',').map(r=>r.trim()).filter(Boolean),
+    notas:vmp('mp-notas'), fuente:'Ingreso Manual', esManual:true,
+    solicitud:'recién ingresado', fechaRegistro:new Date().toISOString(), nuevo:true,
+  };
+}
+
+function guardarNuevoMiProspecto(){
+  const nombre=vmp('mp-nombre'); const personas=parseInt(vmp('mp-personas'))||0;
+  if(!nombre){ alert('El nombre es obligatorio.'); return; }
+  if(personas<25){ alert('El mínimo de colaboradores es 25.'); return; }
+  misProspectos.unshift(recogerMiProspecto(Date.now()));
+  saveMisProspectos(misProspectos);
+  closeModal();
+  document.getElementById('extraSection').innerHTML=renderMisProspectos();
+  alert(`✅ "${nombre}" guardado en Mis Prospectos.`);
+}
+
+function guardarEdicionMiProspecto(id){
+  const nombre=vmp('mp-nombre'); const personas=parseInt(vmp('mp-personas'))||0;
+  if(!nombre){ alert('El nombre es obligatorio.'); return; }
+  if(personas<25){ alert('El mínimo de colaboradores es 25.'); return; }
+  const idx=misProspectos.findIndex(x=>x.id===id);
+  misProspectos[idx]=Object.assign({},misProspectos[idx],recogerMiProspecto(id));
+  saveMisProspectos(misProspectos);
+  closeModal();
+  document.getElementById('extraSection').innerHTML=renderMisProspectos();
+  alert(`✅ "${nombre}" actualizado correctamente.`);
+}
+
+function eliminarMiProspecto(id){
+  const e=misProspectos.find(x=>x.id===id);
+  if(!confirm(`¿Eliminar "${e.nombre}"?`)) return;
+  misProspectos=misProspectos.filter(x=>x.id!==id);
+  saveMisProspectos(misProspectos);
+  document.getElementById('extraSection').innerHTML=renderMisProspectos();
+}
+
+function openContactarMiProspecto(id){
+  // Reusar la misma función de contactar con el objeto del array correcto
+  const orig=empresas.find(x=>x.id===id);
+  if(!orig){ const e=misProspectos.find(x=>x.id===id); empresas.push(e); }
+  openContactar(id);
+}
+
+function openPropuestaMiProspecto(id){
+  const orig=empresas.find(x=>x.id===id);
+  if(!orig){ const e=misProspectos.find(x=>x.id===id); empresas.push(e); }
+  openPropuesta(id);
+}
+
+// ─── FERIAS Y EVENTOS ─────────────────────────────────────────────────────────
+
+function feriasSeed(){
+  return [
+    {
+      id:1, nombre:'EXPOINDUSTRIA 2026',tipo:'Feria',ciudad:'Guayaquil',
+      lugar:'Hotel Hilton Colón — Av. Francisco de Orellana',
+      fecha:'2026-06-02',fechaFin:'2026-06-03',horario:'09:00 – 21:00',
+      asistentes:'5.000+',organizador:'EventosEcuador.com',
+      web:'eventosecuador.com/evento/expoindustria-2026',
+      descripcion:'La feria industrial más importante del Ecuador. Reúne a empresas, industriales, proveedores, ejecutivos y tomadores de decisión del sector productivo nacional. Conferencias especializadas, rueda de negocios y exposición.',
+      ingreso:'Empresas, industriales y profesionales del sector',costo:'Registro previo requerido',
+      notas:'Alta concentración de empresas industriales con personal numeroso. Oportunidad directa para ofrecer servicios de alimentación corporativa a gerentes y jefes de planta.'
+    },
+    {
+      id:2, nombre:'PROLOGITEC SUMMIT AND EXPO 2026',tipo:'Feria',ciudad:'Guayaquil',
+      lugar:'Centro de Convenciones de Guayaquil',
+      fecha:'2026-05-21',fechaFin:'2026-05-22',horario:'09:00 – 19:00',
+      asistentes:'600+',organizador:'TBL The Bottom Line',
+      web:'prologitec.ec',
+      descripcion:'La expoferia y summit más importante de Logística, Empaque, Transporte y Comercio Exterior de Latinoamérica. Rueda de negocios, charlas gratuitas y más de 25 conferencias internacionales.',
+      ingreso:'Empresas de logística, manufactura, comercio exterior',costo:'Registro previo requerido',
+      notas:'Empresas de logística y transporte con muchos colaboradores en campo son clientes potenciales para envases descartables y meriendas.'
+    },
+    {
+      id:3, nombre:'EXPOMEC LATIN AMERICA 2026',tipo:'Feria',ciudad:'Guayaquil',
+      lugar:'Centro de Convenciones de Guayaquil',
+      fecha:'2026-06-26',fechaFin:'2026-06-28',horario:'10:00 – 20:00',
+      asistentes:'3.000+',organizador:'Feria Expomec Ecuador',
+      web:'eventosecuador.com/evento/expomec-latin-america-2026',
+      descripcion:'Feria más grande de autopartes, equipamiento y herramientas automotrices de la región. Talleres Pro Summit, networking con fabricantes, distribuidores y profesionales automotrices.',
+      ingreso:'Profesionales y empresas del sector automotriz',costo:'Registro previo',
+      notas:'Talleres automotrices y distribuidoras con personal técnico son potenciales clientes de servicio de almuerzo diario o meriendas.'
+    },
+    {
+      id:4, nombre:'EXPOTECH AUTOMOTRIZ 2026',tipo:'Feria',ciudad:'Guayaquil',
+      lugar:'Centro de Convenciones Expoplaza — Av. de las Américas',
+      fecha:'2026-06-13',fechaFin:'2026-06-14',horario:'09:00 – 20:00',
+      asistentes:'2.000+',organizador:'ITEGMOTORS / Expotech',
+      web:'expotech.ec',
+      descripcion:'Expoferia automotriz con demostraciones reales, networking estratégico, innovación y tecnología. Sede de la Velada Automotriz Ecuador 2026. Conecta el sector académico y productivo automotor.',
+      ingreso:'Público general y profesionales del sector',costo:'$5 – $15',
+      notas:'Empresas de tecnología automotriz y servicios industriales con personal técnico relevante como prospectos.'
+    },
+    {
+      id:5, nombre:'MULTICOMER 2026 — 3ra Edición',tipo:'Rueda de Negocios',ciudad:'Guayaquil',
+      lugar:'Hotel Oro Verde — Av. 9 de Octubre 414',
+      fecha:'2026-07-15',fechaFin:'2026-07-16',horario:'09:00 – 18:00',
+      asistentes:'500+',organizador:'EventosEcuador.com',
+      web:'eventosecuador.com/evento/multicomer-2026-3era-edicion',
+      descripcion:'Espacio donde productores, supermercados y compradores nacionales e internacionales se encuentran para hacer negocios. Rueda de negocios estratégica con +20 compradores nacionales y +10 internacionales del sector alimentos y bebidas.',
+      ingreso:'Empresas del sector alimentos, bebidas, logística y servicios',costo:'Registro como expositor o asistente',
+      notas:'Evento del sector alimentos: alta pertinencia para presentar Paprika como proveedor de catering corporativo a empresas asistentes.'
+    },
+    {
+      id:6, nombre:'SOCIAL MEDIA DAY GUAYAQUIL 2026',tipo:'Conferencia',ciudad:'Guayaquil',
+      lugar:'Hotel Hilton Colón — Av. Francisco de Orellana (Día 1) · Multicines Village Plaza (Día 2)',
+      fecha:'2026-08-25',fechaFin:'2026-08-26',horario:'09:00 – 18:00',
+      asistentes:'2.000+',organizador:'Esmadi — Social Media Day Ecuador',
+      web:'socialmediaday.ec',
+      descripcion:'El evento más importante de marketing digital, redes sociales e inteligencia artificial en Ecuador. 10ma edición. Más de 200 oradores internacionales, 7 pistas de aprendizaje, networking entre empresas y profesionales digitales.',
+      ingreso:'Profesionales de marketing, empresas y emprendedores',costo:'Desde $30',
+      notas:'Agencias de marketing y empresas tech medianas y grandes que asisten. Posibilidad de networking con gerentes y directivos durante el evento.'
+    },
+    {
+      id:7, nombre:'EXPO CONSTRUCTOR LATAM 2026',tipo:'Feria',ciudad:'Guayaquil',
+      lugar:'Sede por confirmar',
+      fecha:'2026-08-21',fechaFin:'2026-08-23',horario:'10:00 – 20:00',
+      asistentes:'4.000+',organizador:'EventosEcuador.com',
+      web:'eventosecuador.com',
+      descripcion:'Feria de construcción, materiales, maquinaria y servicios para el sector constructor de Latinoamérica. Constructoras, contratistas y proveedores de servicios a la construcción.',
+      ingreso:'Público general y profesionales de la construcción',costo:'Por confirmar',
+      notas:'Constructoras con obras activas en la zona son clientes potenciales para servicio de alimentación en obra con envases descartables.'
+    },
+    {
+      id:8, nombre:'CUMBRE INTERNACIONAL DE COMUNICACIÓN CORPORATIVA 2026',tipo:'Congreso',ciudad:'Guayaquil',
+      lugar:'Hotel Wyndham Guayaquil',
+      fecha:'2026-09-02',fechaFin:'2026-09-03',horario:'08:30 – 18:00',
+      asistentes:'400+',organizador:'EventosEcuador.com',
+      web:'eventosecuador.com',
+      descripcion:'Congreso dirigido a directores de comunicación, relaciones públicas y marketing corporativo de grandes empresas. Estrategias de comunicación interna, externa y gestión de marca.',
+      ingreso:'Directivos y profesionales de comunicación corporativa',costo:'Por confirmar',
+      notas:'Asisten gerentes y directores de empresas grandes. Espacio para networking con tomadores de decisión sobre servicios corporativos.'
+    },
+    {
+      id:9, nombre:'INGENIA SUMMIT 2026',tipo:'Conferencia',ciudad:'Guayaquil',
+      lugar:'Hotel Hilton Colón — Av. Francisco de Orellana',
+      fecha:'2026-09-17',fechaFin:'2026-09-17',horario:'09:00 – 18:00',
+      asistentes:'800+',organizador:'EventosEcuador.com',
+      web:'eventosecuador.com',
+      descripcion:'Summit de innovación, emprendimiento y transformación empresarial. Speakers nacionales e internacionales, casos de éxito y networking entre empresas en crecimiento.',
+      ingreso:'Empresarios, emprendedores y profesionales',costo:'Por confirmar',
+      notas:'Empresas medianas en crecimiento que buscan optimizar servicios internos como alimentación de personal.'
+    },
+    {
+      id:10, nombre:'ENERGY ECUADOR 2026',tipo:'Feria',ciudad:'Guayaquil',
+      lugar:'Centro de Convenciones de Guayaquil',
+      fecha:'2026-09-23',fechaFin:'2026-09-24',horario:'12:00 – 21:00',
+      asistentes:'2.500+',organizador:'EventosEcuador.com',
+      web:'eventosecuador.com',
+      descripcion:'Feria del sector energético, petróleo, gas, energías renovables y servicios industriales. Empresas del sector energético nacional e internacional.',
+      ingreso:'Empresas del sector energético e industrial',costo:'Por confirmar',
+      notas:'Empresas del sector energético e hidrocarburífero con personal técnico numeroso en instalaciones remotas. Potenciales clientes para servicio de alimentación en sitio.'
+    },
+    {
+      id:11, nombre:'EDU SMART TECH ECUADOR 2026',tipo:'Congreso',ciudad:'Guayaquil',
+      lugar:'Centro de Convenciones de Guayaquil',
+      fecha:'2026-05-26',fechaFin:'2026-05-27',horario:'09:00 – 19:00',
+      asistentes:'1.000+',organizador:'Alcaldía de Guayaquil / Sector Educativo',
+      web:'guayaquil.gob.ec',
+      descripcion:'Congreso que reúne a líderes educativos, docentes y empresas tecnológicas para analizar tendencias de innovación en el aprendizaje. Respaldado por la Alcaldía de Guayaquil como parte de la estrategia MICE.',
+      ingreso:'Instituciones educativas, docentes y empresas tecnológicas',costo:'Gratuito / Registro previo',
+      notas:'Instituciones educativas con personal numeroso y alumnado son clientes para meriendas y refrigerios. Contactar a directores administrativos.'
+    },
+    {
+      id:12, nombre:'CONFERENCIA FARID DIECK — SAMBORONDÓN 2026',tipo:'Conferencia',ciudad:'Samborondón',
+      lugar:'Teatro Sánchez Aguilar',
+      fecha:'2026-06-04',fechaFin:'2026-06-04',horario:'Confirmar',
+      asistentes:'500+',organizador:'TicketShow',
+      web:'ticketshow.com.ec',
+      descripcion:'Conferencia de motivación y liderazgo empresarial del speaker internacional Farid Dieck. Dirigida a empresarios, emprendedores y profesionales del área metropolitana de Guayaquil.',
+      ingreso:'Público general',costo:'Desde $30',
+      notas:'Asisten empresarios y gerentes del sector de Samborondón. Buena oportunidad para networking con empresas de la zona.'
+    },
+  ];
+}
+
+function renderFerias(){
+  const byCity={Guayaquil:0,Durán:0,Daule:0,Samborondón:0,Pascuales:0};
+  ferias.forEach(f=>{ byCity[f.ciudad]=(byCity[f.ciudad]||0)+1; });
+  const hoy=new Date(); hoy.setHours(0,0,0,0);
+  const proximos=ferias.filter(f=>new Date(f.fecha+'T00:00:00')>=hoy).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
+  const pasados=ferias.filter(f=>new Date(f.fecha+'T00:00:00')<hoy).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
+  const ordenados=[...proximos,...pasados];
+
+  const tarjetas=ordenados.map(f=>{
+    const fInicio=new Date(f.fecha+'T00:00:00');
+    const esPasado=fInicio<hoy;
+    const diffDias=Math.ceil((fInicio-hoy)/(1000*60*60*24));
+    const proximoLabel=!esPasado&&diffDias<=30?`<span style="background:#EAF3DE;color:#27500A;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;">⏰ En ${diffDias} días</span>`:'';
+    const tipoColor=f.tipo==='Feria'?'background:#E6F1FB;color:#185FA5':f.tipo==='Conferencia'?'background:#EEEDFE;color:#3C3489':'background:#FAEEDA;color:#633806';
+    const ciudadColor=f.ciudad==='Guayaquil'?'background:#E6F1FB;color:#185FA5':f.ciudad==='Durán'?'background:#FAEEDA;color:#633806':f.ciudad==='Samborondón'?'background:#EEEDFE;color:#3C3489':f.ciudad==='Pascuales'?'background:#F3F0FF;color:#3C3489':'background:#E1F5EE;color:#085041';
+    const fechaStr=fmtFecha(f.fecha)+(f.fechaFin&&f.fechaFin!==f.fecha?' – '+fmtFecha(f.fechaFin):'');
+    return `<div style="background:#fff;border:1px solid ${esPasado?'#f0ede6':'rgba(0,0,0,0.09)'};border-radius:12px;padding:1rem 1.1rem;transition:box-shadow .15s;${esPasado?'opacity:.65':''}cursor:pointer;" onclick="openDetalleEvento(${f.id})">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div style="display:flex;gap:5px;flex-wrap:wrap;">
+          <span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;${tipoColor};">${f.tipo}</span>
+          <span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;${ciudadColor};">${f.ciudad}</span>
+          ${esPasado?'<span style="background:#F1EFE8;color:#888780;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;">Finalizado</span>':proximoLabel}
+        </div>
+        <div style="display:flex;gap:5px;">
+          <button onclick="event.stopPropagation();openEditarEvento(${f.id})" style="background:var(--blue-light);color:var(--blue);border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;cursor:pointer;">✏️</button>
+          <button onclick="event.stopPropagation();eliminarEvento(${f.id})" style="background:#FCEBEB;color:#791F1F;border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;cursor:pointer;">🗑</button>
+        </div>
+      </div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px;">${f.nombre}</div>
+      <div style="font-size:12px;color:#888780;margin-bottom:8px;">📍 ${f.lugar}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:11px;">
+        <div style="color:#888780;">📅 <strong style="color:var(--text);">${fechaStr}</strong></div>
+        <div style="color:#888780;">🕐 ${f.horario}</div>
+        <div style="color:#888780;">👥 ${f.asistentes} asistentes est.</div>
+        <div style="color:#888780;">🎟 ${f.costo}</div>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:#555;line-height:1.5;border-top:1px solid #f0ede6;padding-top:8px;">${f.descripcion}</div>
+      ${f.notas?`<div style="margin-top:6px;background:#FAEEDA;border-radius:6px;padding:6px 9px;font-size:11px;color:#633806;">💡 ${f.notas}</div>`:''}
+    </div>`;
+  }).join('');
+
+  return `<div style="padding:2rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <div>
+        <h2 style="font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:3px;">Ferias y Eventos</h2>
+        <p style="color:#888780;font-size:13px;">${ferias.length} evento${ferias.length!==1?'s':''} · Guayaquil, Samborondón, Daule
+          <span style="margin-left:10px;color:var(--green);font-size:11px;">● Datos actualizados: ${FERIAS_UPDATED}</span>
+        </p>
+      </div>
+      <button onclick="openNuevoEvento()" style="background:var(--orange);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nuevo evento
+      </button>
+    </div>
+    <div style="background:#E6F1FB;border:1px solid #BFDBFE;border-radius:8px;padding:9px 13px;font-size:11px;color:#185FA5;margin-bottom:1.25rem;display:flex;align-items:center;gap:8px;">
+      <span style="font-size:15px;">📡</span>
+      <span><strong>Fuente:</strong> Eventos verificados en eventosecuador.com · neventum.es · socialmediaday.ec · guayaquil.gob.ec · ticketshow.com.ec · prologitec.ec — al <strong>${FERIAS_UPDATED}</strong>. Las fechas están sujetas a cambios por parte de los organizadores.</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.5rem;">
+      ${[['Próximos',proximos.length,'var(--orange)','var(--orange-light)'],['Guayaquil',byCity.Guayaquil||0,'var(--blue)','var(--blue-light)'],['Samborondón',byCity['Samborondón']||0,'var(--purple)','var(--purple-light)'],['Daule + otros',(byCity.Daule||0)+(byCity.Durán||0)+(byCity.Pascuales||0),'var(--green)','var(--green-light)']].map(([l,n,c,bg])=>`
+      <div style="background:${bg};border-radius:10px;padding:12px 14px;">
+        <div style="font-size:22px;font-weight:700;color:${c};">${n}</div>
+        <div style="font-size:11px;color:#888780;margin-top:2px;">${l}</div>
+      </div>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;">
+      ${tarjetas}
+    </div>
+  </div>`;
+}
+
+function fmtFecha(s){
+  if(!s) return '—';
+  const d=new Date(s+'T00:00:00');
+  return d.toLocaleDateString('es-EC',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+function openDetalleEvento(id){
+  const f=ferias.find(x=>x.id===id); if(!f) return;
+  const hoy=new Date(); hoy.setHours(0,0,0,0);
+  const esPasado=new Date(f.fecha+'T00:00:00')<hoy;
+  document.getElementById('modalContent').innerHTML=`
+    <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+    <h2 style="margin-bottom:6px;">${f.nombre}</h2>
+    <p style="font-size:12px;color:#888780;margin-bottom:1rem;">${f.tipo} · ${f.ciudad} · ${esPasado?'<span style="color:#888780;">Finalizado</span>':'<span style="color:var(--green);">Próximo</span>'}</p>
+    <div class="detail-grid" style="margin-bottom:1rem;">
+      <div class="detail-item"><div class="dl">Fecha</div><div class="dv">${fmtFecha(f.fecha)}${f.fechaFin&&f.fechaFin!==f.fecha?' → '+fmtFecha(f.fechaFin):''}</div></div>
+      <div class="detail-item"><div class="dl">Horario</div><div class="dv">${f.horario}</div></div>
+      <div class="detail-item"><div class="dl">Lugar</div><div class="dv">${f.lugar}</div></div>
+      <div class="detail-item"><div class="dl">Ciudad</div><div class="dv">${f.ciudad}</div></div>
+      <div class="detail-item"><div class="dl">Asistentes estimados</div><div class="dv">${f.asistentes}</div></div>
+      <div class="detail-item"><div class="dl">Costo de ingreso</div><div class="dv">${f.costo}</div></div>
+      <div class="detail-item"><div class="dl">Organizador</div><div class="dv">${f.organizador||'—'}</div></div>
+      <div class="detail-item"><div class="dl">Tipo de ingreso</div><div class="dv">${f.ingreso||'—'}</div></div>
+      ${f.web?`<div class="detail-item" style="grid-column:span 2"><div class="dl">Sitio web</div><div class="dv"><a href="http://${f.web}" target="_blank" style="color:var(--blue);">${f.web}</a></div></div>`:''}
+    </div>
+    <div class="modal-section"><h4>Descripción</h4><div style="background:var(--gray-light);border-radius:8px;padding:10px 13px;font-size:13px;line-height:1.6;">${f.descripcion}</div></div>
+    ${f.notas?`<div class="modal-section"><h4>Nota de oportunidad</h4><div style="background:#FAEEDA;border-radius:8px;padding:10px 13px;font-size:13px;color:#633806;line-height:1.6;">💡 ${f.notas}</div></div>`:''}
+    <div style="margin-top:1.25rem;display:flex;gap:8px;">
+      <button onclick="openEditarEvento(${f.id});closeModal()" style="flex:1;background:var(--blue-light);color:var(--blue);border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;">✏️ Editar evento</button>
+    </div>`;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function eventoForm(datos){
+  const d=datos||{}; const esEdicion=!!datos;
+  const sl=(val,opt)=>val===opt?'selected':'';
+  const inp=(id,lbl,val,type='text',span='')=>`<div${span?' style="grid-column:'+span+'"':''}><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">${lbl}</label><input id="${id}" type="${type}" value="${(val||'').replace(/"/g,'&quot;')}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>`;
+  document.getElementById('modalContent').innerHTML=`
+    <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+    <h2 style="margin-bottom:1rem;">${esEdicion?'✏️ Editar evento':'🎪 Nuevo evento / feria'}</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div style="grid-column:span 2">${inp('ev-nombre','Nombre del evento *',d.nombre,'text','span 2')}</div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Tipo</label>
+        <select id="ev-tipo" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;">
+          <option ${sl(d.tipo,'Feria')}>Feria</option>
+          <option ${sl(d.tipo,'Conferencia')}>Conferencia</option>
+          <option ${sl(d.tipo,'Exposición')}>Exposición</option>
+          <option ${sl(d.tipo,'Congreso')}>Congreso</option>
+          <option ${sl(d.tipo,'Rueda de Negocios')}>Rueda de Negocios</option>
+          <option ${sl(d.tipo,'Otro')}>Otro</option>
+        </select></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Ciudad</label>
+        <select id="ev-ciudad" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;">
+          <option ${sl(d.ciudad,'Guayaquil')}>Guayaquil</option>
+          <option ${sl(d.ciudad,'Samborondón')}>Samborondón</option>
+          <option ${sl(d.ciudad,'Daule')}>Daule</option>
+          <option ${sl(d.ciudad,'Durán')}>Durán</option>
+          <option ${sl(d.ciudad,'Pascuales')}>Pascuales</option>
+        </select></div>
+      ${inp('ev-lugar','Lugar / Recinto',d.lugar,'text','span 2')}
+      ${inp('ev-fecha','Fecha de inicio *',d.fecha,'date')}
+      ${inp('ev-fechaFin','Fecha de cierre',d.fechaFin,'date')}
+      ${inp('ev-horario','Horario (ej: 09:00 – 18:00)',d.horario)}
+      ${inp('ev-asistentes','Asistentes estimados',d.asistentes)}
+      ${inp('ev-organizador','Organizador',d.organizador)}
+      ${inp('ev-web','Sitio web',d.web)}
+      ${inp('ev-costo','Costo de ingreso',d.costo)}
+      ${inp('ev-ingreso','Tipo de público',d.ingreso)}
+    </div>
+    <div style="margin-top:8px;"><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Descripción del evento</label>
+      <textarea id="ev-desc" rows="3" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;resize:vertical;outline:none;">${d.descripcion||''}</textarea></div>
+    <div style="margin-top:8px;"><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Nota de oportunidad (para Paprika)</label>
+      <textarea id="ev-notas" rows="2" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;resize:vertical;outline:none;">${d.notas||''}</textarea></div>
+    <button onclick="${esEdicion?'guardarEdicionEvento('+d.id+')':'guardarNuevoEvento()'}" style="margin-top:12px;width:100%;background:var(--orange);color:#fff;border:none;border-radius:8px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;">${esEdicion?'💾 Guardar cambios':'💾 Guardar evento'}</button>`;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function vev(id){ const el=document.getElementById(id); return el?el.value.trim():''; }
+
+function recogerEvento(id){
+  return {
+    id: id||Date.now(), nombre:vev('ev-nombre'), tipo:vev('ev-tipo'), ciudad:vev('ev-ciudad'),
+    lugar:vev('ev-lugar'), fecha:vev('ev-fecha'), fechaFin:vev('ev-fechaFin'),
+    horario:vev('ev-horario'), asistentes:vev('ev-asistentes'),
+    organizador:vev('ev-organizador'), web:vev('ev-web'),
+    costo:vev('ev-costo'), ingreso:vev('ev-ingreso'),
+    descripcion:vev('ev-desc'), notas:vev('ev-notas'),
+  };
+}
+
+function guardarNuevoEvento(){
+  const nombre=document.getElementById('ev-nombre').value.trim();
+  const fecha=document.getElementById('ev-fecha').value.trim();
+  if(!nombre){ alert('El nombre del evento es obligatorio.'); return; }
+  if(!fecha){ alert('La fecha de inicio es obligatoria.'); return; }
+  const nuevo=recogerEvento(Date.now());
+  ferias.push(nuevo);
+  saveFerias(ferias);
+  closeModal();
+  document.getElementById('extraSection').innerHTML=renderFerias();
+  alert(`✅ "${nombre}" guardado correctamente.`);
+}
+
+function openNuevoEvento(){ eventoForm(null); }
+function openEditarEvento(id){ eventoForm(ferias.find(x=>x.id===id)); }
+
+function guardarEdicionEvento(id){
+  const nombre=document.getElementById('ev-nombre').value.trim();
+  if(!nombre){ alert('El nombre es obligatorio.'); return; }
+  const idx=ferias.findIndex(x=>x.id===id);
+  ferias[idx]=recogerEvento(id);
+  saveFerias(ferias);
+  closeModal();
+  document.getElementById('extraSection').innerHTML=renderFerias();
+  alert(`✅ "${nombre}" actualizado correctamente.`);
+}
+
+function eliminarEvento(id){
+  const f=ferias.find(x=>x.id===id);
+  if(!confirm(`¿Eliminar "${f.nombre}"?`)) return;
+  ferias=ferias.filter(x=>x.id!==id);
+  saveFerias(ferias);
+  document.getElementById('extraSection').innerHTML=renderFerias();
+}
+
+// ─── LISTA DE CONTACTOS ───────────────────────────────────────────────────────
+function renderContactos(){
+  const manuales=misProspectos;
+  const filas=manuales.map(e=>{
+    const mailCell=e.email
+      ? `<a href="#" onclick="abrirMailContacto('${e.email.replace(/'/g,'')}','${e.contacto.replace(/'/g,'')}');return false;" style="color:var(--blue);font-size:12px;">${e.email}</a>`
+      : '<span style="color:#ccc;font-size:11px;">—</span>';
+    return `<tr style="border-top:1px solid #f0ede6;">
+      <td style="padding:9px 12px;font-weight:500;min-width:140px;">${e.nombre}</td>
+      <td style="padding:9px 12px;white-space:nowrap;">${e.contacto||'—'}</td>
+      <td style="padding:9px 12px;color:#888780;font-size:11px;white-space:nowrap;">${e.cargo||'—'}</td>
+      <td style="padding:9px 12px;color:#888780;white-space:nowrap;">${e.tel||'—'}</td>
+      <td style="padding:9px 12px;color:#888780;white-space:nowrap;">${e.celular||'—'}</td>
+      <td style="padding:9px 12px;">${mailCell}</td>
+      <td style="padding:9px 12px;color:#888780;white-space:nowrap;">${e.cumple?formatFecha(e.cumple):'—'}</td>
+      <td style="padding:9px 12px;text-align:center;font-weight:700;${e.prioridad==='alta'?'color:var(--orange)':e.prioridad==='media'?'color:var(--amber)':'color:var(--green)'};">${e.personas}</td>
+      <td style="padding:9px 12px;color:#888780;font-size:11px;">${e.ciudad}</td>
+      <td style="padding:9px 12px;color:#888780;font-size:11px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${(e.notas||'').replace(/"/g,'')}">${e.notas?e.notas.substring(0,35)+(e.notas.length>35?'…':''):'—'}</td>
+      <td style="padding:9px 12px;text-align:center;white-space:nowrap;">
+        <button onclick="openEditarMiProspecto(${e.id})" style="background:var(--blue-light);color:var(--blue);border:none;border-radius:6px;padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer;margin-right:3px;">✏️ Editar</button>
+        <button onclick="eliminarMiProspecto(${e.id});document.getElementById('extraSection').innerHTML=renderContactos();" style="background:#FCEBEB;color:#791F1F;border:none;border-radius:6px;padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer;">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+  return `<div style="padding:2rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+      <div>
+        <h2 style="font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:3px;">Lista de Contactos</h2>
+        <p style="color:#888780;font-size:13px;">${manuales.length} prospecto${manuales.length!==1?'s':''} ingresado${manuales.length!==1?'s':''} manualmente</p>
+      </div>
+      <button onclick="openNuevoMiProspecto()" style="background:var(--orange);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nuevo prospecto
+      </button>
+    </div>
+    ${manuales.length===0
+      ? `<div style="text-align:center;padding:3rem;color:#888780;background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);">
+          <div style="font-size:42px;margin-bottom:12px;">📋</div>
+          <div style="font-size:15px;font-weight:500;margin-bottom:6px;">Aún no hay prospectos ingresados</div>
+          <div style="font-size:13px;">Haz clic en "Nuevo prospecto" para agregar el primero</div>
+        </div>`
+      : `<div style="background:#fff;border-radius:12px;overflow:auto;box-shadow:0 1px 4px rgba(0,0,0,.07);">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead><tr style="background:#F7F5F0;">
+              <th style="padding:10px 12px;text-align:left;font-size:10px;color:#888780;font-weight:600;">Empresa</th>
+              <th style="padding:10px 12px;font-size:10px;color:#888780;font-weight:600;">Contacto</th>
+              <th style="padding:10px 12px;font-size:10px;color:#888780;font-weight:600;">Cargo</th>
+              <th style="padding:10px 12px;font-size:10px;color:#888780;font-weight:600;">Teléfono</th>
+              <th style="padding:10px 12px;font-size:10px;color:#888780;font-weight:600;">Celular</th>
+              <th style="padding:10px 12px;font-size:10px;color:#888780;font-weight:600;">Mail</th>
+              <th style="padding:10px 12px;font-size:10px;color:#888780;font-weight:600;">Cumpleaños</th>
+              <th style="padding:10px 12px;font-size:10px;color:#888780;font-weight:600;text-align:center;">Empleados</th>
+              <th style="padding:10px 12px;font-size:10px;color:#888780;font-weight:600;">Ciudad</th>
+              <th style="padding:10px 12px;font-size:10px;color:#888780;font-weight:600;">Notas</th>
+              <th style="padding:10px 12px;font-size:10px;color:#888780;font-weight:600;text-align:center;">Acciones</th>
+            </tr></thead>
+            <tbody>${filas}</tbody>
+          </table>
+        </div>`}
+    <p style="font-size:11px;color:#888780;margin-top:10px;">✏️ Clic en <strong>Editar</strong> para modificar datos. Los cambios se guardan en este navegador.</p>
+  </div>`;
+}
+
+function formatFecha(s){
+  if(!s) return '—';
+  const p=s.split('-');
+  const m=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  return p[2]+' '+m[parseInt(p[1])-1]+(p[0]&&p[0]!=='0000'?' '+p[0]:'');
+}
+
+function abrirMailContacto(mail,nombre){
+  const a=document.createElement('a');
+  a.href='mailto:'+mail+'?subject='+encodeURIComponent('Paprika Servicios de Alimentación')
+    +'&body='+encodeURIComponent('Estimado/a '+nombre+',\n\nMe comunico desde Paprika Servicios de Alimentación.\n\n[Tu mensaje aquí]\n\nAtentamente,\nEquipo Paprika');
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>document.body.removeChild(a),200);
+}
+
+function openNuevoProspecto(){ openNuevoProspectoForm(null); }
+
+function openNuevoProspectoForm(datos){
+  const d=datos||{};
+  const esEdicion=!!datos;
+  const sel=(val,opt)=>val===opt?'selected':'';
+  document.getElementById('modalContent').innerHTML=`
+    <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+    <h2 style="margin-bottom:8px;">${esEdicion?'✏️ Editar prospecto':'➕ Nuevo prospecto'}</h2>
+    ${!esEdicion?'<p style="font-size:12px;color:var(--green);background:var(--green-light);padding:7px 10px;border-radius:7px;margin-bottom:1rem;">✅ Se guardará en este navegador y aparecerá en Lista de Contactos, dashboard y reportes.</p>':''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div style="grid-column:span 2"><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Nombre de la empresa *</label><input id="np-nombre" value="${d.nombre||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">RUC</label><input id="np-ruc" value="${d.ruc||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Sector</label>
+        <select id="np-sector" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;">
+          <option ${sel(d.sector,'Industrial')}>Industrial</option><option ${sel(d.sector,'Manufactura')}>Manufactura</option>
+          <option ${sel(d.sector,'Logística')}>Logística</option><option ${sel(d.sector,'Construcción')}>Construcción</option>
+          <option ${sel(d.sector,'Salud')}>Salud</option><option ${sel(d.sector,'Educación')}>Educación</option>
+          <option ${sel(d.sector,'Comercio')}>Comercio</option>
+        </select></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Ciudad</label>
+        <select id="np-ciudad" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;">
+          <option ${sel(d.ciudad,'Guayaquil')}>Guayaquil</option><option ${sel(d.ciudad,'Durán')}>Durán</option><option ${sel(d.ciudad,'Daule')}>Daule</option><option ${sel(d.ciudad,'Pascuales')}>Pascuales</option>
+        </select></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Zona / Sector</label><input id="np-zona" value="${d.zona||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div style="grid-column:span 2"><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Dirección</label><input id="np-direccion" value="${d.direccion||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">N.° colaboradores (mín. 25)</label><input id="np-personas" type="number" value="${d.personas||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Tipo de servicio</label>
+        <select id="np-tipoServicio" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;">
+          <option value="cocina" ${sel(d.tipoServicio,'cocina')}>Cocina en sitio</option>
+          <option value="autoservicio" ${sel(d.tipoServicio,'autoservicio')}>Autoservicio</option>
+          <option value="descartable" ${sel(d.tipoServicio,'descartable')}>Envases descartables</option>
+          <option value="merienda" ${sel(d.tipoServicio,'merienda')}>Meriendas</option>
+        </select></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Estado de búsqueda</label>
+        <select id="np-modalidad" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;">
+          <option value="licitacion" ${sel(d.modalidadBusqueda,'licitacion')}>En licitación</option>
+          <option value="cartera" ${sel(d.modalidadBusqueda,'cartera')}>Con cartera de proveedores</option>
+          <option value="busqueda" ${sel(d.modalidadBusqueda,'busqueda')}>Búsqueda abierta</option>
+        </select></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Prioridad</label>
+        <select id="np-prioridad" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;">
+          <option value="alta" ${sel(d.prioridad,'alta')}>Alta</option>
+          <option value="media" ${sel(d.prioridad,'media')}>Media</option>
+          <option value="baja" ${sel(d.prioridad,'baja')}>Baja</option>
+        </select></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Nombre del contacto</label><input id="np-contacto" value="${d.contacto||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Cargo</label><input id="np-cargo" value="${d.cargo||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Teléfono fijo</label><input id="np-tel" value="${d.tel||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Celular</label><input id="np-celular" value="${d.celular||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div style="grid-column:span 2"><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Correo electrónico</label><input id="np-email" type="email" value="${d.email||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Sitio web</label><input id="np-web" value="${d.web||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+      <div><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Cumpleaños del contacto</label><input id="np-cumple" type="date" value="${d.cumple||''}" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+    </div>
+    <div style="margin-top:8px;"><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Requisitos exigidos al proveedor (separados por coma)</label>
+      <input id="np-requisitos" value="${(d.requisitos||[]).join(', ')}" placeholder="Ej: Certificado BPM, Permiso ARCSA" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;outline:none;"></div>
+    <div style="margin-top:8px;"><label style="font-size:10px;color:#888780;display:block;margin-bottom:3px;">Notas adicionales</label>
+      <textarea id="np-notas" rows="3" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:8px;font-size:12px;resize:vertical;outline:none;">${d.notas||''}</textarea></div>
+    <button onclick="${esEdicion?'guardarEdicion('+d.id+')':'guardarProspecto()'}" style="margin-top:12px;width:100%;background:var(--orange);color:#fff;border:none;border-radius:8px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;">${esEdicion?'💾 Guardar cambios':'💾 Guardar prospecto'}</button>`;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function renderContratos(){
+  const contratos=[
+    {n:'Procesadora El Pacífico',c:'Guayaquil',s:'Cocina en sitio',p:420,v:'31 Jul 2025',est:'Vigente',proveedor:'Alimentec S.A.',costoProveedor:'$4.20 por comensal/día'},
+    {n:'Escuela Politécnica del Litoral',c:'Guayaquil',s:'Cocina en sitio',p:500,v:'15 Dic 2025',est:'Vigente',proveedor:'Culinaria del Pacífico',costoProveedor:'$4.00 por comensal/día'},
+    {n:'Supermercados Coral',c:'Guayaquil',s:'Autoservicio',p:380,v:'30 Jun 2025',est:'Por vencer',proveedor:'ServiFood Cía. Ltda.',costoProveedor:'$3.80 por comensal/día'},
+    {n:'Acería del Ecuador',c:'Durán',s:'Cocina en sitio',p:290,v:'28 Feb 2026',est:'Vigente',proveedor:'Menú Express',costoProveedor:'$3.50 por comensal/día'},
+    {n:'Frigotécnica del Litoral',c:'Guayaquil',s:'Cocina en sitio',p:340,v:'10 Ago 2025',est:'Vigente',proveedor:'Catering GYE',costoProveedor:'$4.50 por comensal/día'},
+    {n:'Laboratorios Andibea',c:'Guayaquil',s:'Autoservicio',p:160,v:'05 Jun 2025',est:'Vencido',proveedor:'NutriServ',costoProveedor:'$3.20 por comensal/día'},
+  ];
+  return `<div style="padding:2rem;">
+    <h2 style="font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:4px;">Contratos activos</h2>
+    <p style="color:#888780;font-size:13px;margin-bottom:1.5rem;">Proveedor actual y lo que le está cobrando a cada empresa</p>
+    <div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.07);">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead><tr style="background:#F7F5F0;">
+        <th style="padding:11px 14px;text-align:left;font-size:10px;color:#888780;font-weight:600;">Empresa</th>
+        <th style="padding:11px 14px;font-size:10px;color:#888780;font-weight:600;text-align:left;">Ciudad</th>
+        <th style="padding:11px 14px;font-size:10px;color:#888780;font-weight:600;text-align:left;">Servicio</th>
+        <th style="padding:11px 14px;font-size:10px;color:#888780;font-weight:600;text-align:left;">Personas</th>
+        <th style="padding:11px 14px;font-size:10px;color:#888780;font-weight:600;text-align:left;">Proveedor actual</th>
+        <th style="padding:11px 14px;font-size:10px;color:#888780;font-weight:600;text-align:left;">Costo que cobra el proveedor</th>
+        <th style="padding:11px 14px;font-size:10px;color:#888780;font-weight:600;text-align:left;">Vence</th>
+        <th style="padding:11px 14px;font-size:10px;color:#888780;font-weight:600;text-align:left;">Estado</th>
+      </tr></thead>
+      <tbody>
+      ${contratos.map(r=>`<tr style="border-top:1px solid #f0ede6;">
+        <td style="padding:11px 14px;font-weight:500;">${r.n}</td>
+        <td style="padding:11px 14px;color:#888780;">${r.c}</td>
+        <td style="padding:11px 14px;color:#888780;">${r.s}</td>
+        <td style="padding:11px 14px;">👥 ${r.p}</td>
+        <td style="padding:11px 14px;color:#555;">${r.proveedor}</td>
+        <td style="padding:11px 14px;font-weight:700;color:var(--orange);">${r.costoProveedor}</td>
+        <td style="padding:11px 14px;color:#888780;">${r.v}</td>
+        <td style="padding:11px 14px;"><span style="font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;background:${r.est==='Vigente'?'#E1F5EE':r.est==='Por vencer'?'#FAEEDA':'#FCEBEB'};color:${r.est==='Vigente'?'#085041':r.est==='Por vencer'?'#633806':'#791F1F'};">${r.est}</span></td>
+      </tr>`).join('')}
+      </tbody>
+    </table></div>
+    <p style="font-size:11px;color:#888780;margin-top:10px;">💡 El costo que cobra el proveedor es el precio por comensal por día que actualmente paga la empresa. Dato ingresado manualmente al registrar el prospecto.</p>
+  </div>`;
+}
+
+function renderMapa(){
+  return `<div style="padding:2rem;">
+    <h2 style="font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:4px;">Mapa de prospectos</h2>
+    <p style="color:#888780;font-size:13px;margin-bottom:1.5rem;">Distribución por ciudad — Guayaquil, Durán y Daule</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:1.5rem;">
+      <div style="background:var(--blue-light);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:28px;font-weight:700;color:var(--blue);">${empresas.filter(e=>e.ciudad==='Guayaquil').length}</div>
+        <div style="font-size:12px;color:#888780;margin-top:2px;">Guayaquil</div>
+      </div>
+      <div style="background:var(--amber-light);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:28px;font-weight:700;color:var(--amber);">${empresas.filter(e=>e.ciudad==='Durán').length}</div>
+        <div style="font-size:12px;color:#888780;margin-top:2px;">Durán</div>
+      </div>
+      <div style="background:var(--green-light);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:28px;font-weight:700;color:var(--green);">${empresas.filter(e=>e.ciudad==='Daule').length}</div>
+        <div style="font-size:12px;color:#888780;margin-top:2px;">Daule</div>
+      </div>
+    </div>
+    <div style="background:#fff;border-radius:12px;padding:1.5rem;box-shadow:0 1px 4px rgba(0,0,0,.07);">
+      <svg viewBox="0 0 600 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:8px;">
+        <rect width="600" height="340" fill="#D4E9F7"/>
+        <ellipse cx="220" cy="175" rx="165" ry="132" fill="#E8F4E8" stroke="#ccc" stroke-width="1"/>
+        <text x="220" y="88" text-anchor="middle" font-size="13" font-weight="600" fill="#444">Guayaquil</text>
+        <ellipse cx="395" cy="205" rx="90" ry="70" fill="#FEF3E2" stroke="#ccc" stroke-width="1"/>
+        <text x="395" y="152" text-anchor="middle" font-size="12" font-weight="600" fill="#888">Durán</text>
+        <ellipse cx="148" cy="62" rx="80" ry="44" fill="#E0F5EE" stroke="#ccc" stroke-width="1"/>
+        <text x="148" y="36" text-anchor="middle" font-size="12" font-weight="600" fill="#666">Daule</text>
+        <path d="M312 55 Q332 175 312 285" stroke="#93C5E8" stroke-width="18" fill="none" opacity=".6"/>
+        <text x="328" y="178" font-size="10" fill="#5599CC" transform="rotate(90,328,178)">Río Guayas</text>
+        ${['160,122','215,158','258,198','182,218','238,132','143,177'].map((c,i)=>`<circle cx="${c.split(',')[0]}" cy="${c.split(',')[1]}" r="10" fill="#D85A30" opacity=".85"/>`).join('')}
+        ${['362,188','418,218','387,243'].map((c,i)=>`<circle cx="${c.split(',')[0]}" cy="${c.split(',')[1]}" r="9" fill="#BA7517" opacity=".85"/>`).join('')}
+        ${['132,60','177,72'].map((c,i)=>`<circle cx="${c.split(',')[0]}" cy="${c.split(',')[1]}" r="8" fill="#1D9E75" opacity=".85"/>`).join('')}
+        <rect x="20" y="295" width="11" height="11" rx="2" fill="#D85A30"/>
+        <text x="36" y="305" font-size="11" fill="#555">Guayaquil (${empresas.filter(e=>e.ciudad==='Guayaquil').length})</text>
+        <rect x="150" y="295" width="11" height="11" rx="2" fill="#BA7517"/>
+        <text x="166" y="305" font-size="11" fill="#555">Durán (${empresas.filter(e=>e.ciudad==='Durán').length})</text>
+        <rect x="260" y="295" width="11" height="11" rx="2" fill="#1D9E75"/>
+        <text x="276" y="305" font-size="11" fill="#555">Daule (${empresas.filter(e=>e.ciudad==='Daule').length})</text>
+      </svg>
+    </div>
+  </div>`;
+}
+
+function renderReportes(){
+  const total=empresas.length;
+  const alta=empresas.filter(e=>e.prioridad==='alta').length;
+  const conEmail=empresas.filter(e=>e.email).length;
+  const byCity={Guayaquil:0,Durán:0,Daule:0};
+  const bySector={};
+  const byServicio={cocina:0,autoservicio:0,descartable:0,merienda:0};
+  const byModalidad={licitacion:0,cartera:0,busqueda:0};
+  empresas.forEach(e=>{
+    byCity[e.ciudad]=(byCity[e.ciudad]||0)+1;
+    bySector[e.sector]=(bySector[e.sector]||0)+1;
+    byServicio[e.tipoServicio]=(byServicio[e.tipoServicio]||0)+1;
+    byModalidad[e.modalidadBusqueda]=(byModalidad[e.modalidadBusqueda]||0)+1;
+  });
+  const sectorRows=Object.entries(bySector).sort((a,b)=>b[1]-a[1]);
+  const maxSec=Math.max(...Object.values(bySector),1);
+
+  return `<div style="padding:2rem;">
+    <h2 style="font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:4px;">Reportes</h2>
+    <div style="background:var(--green-light);border:1px solid #BBF7D0;border-radius:8px;padding:10px 13px;font-size:12px;color:#166534;margin-bottom:1.5rem;">
+      📊 <strong>Datos 100% reales:</strong> todos los números de este reporte se calculan automáticamente a partir de los prospectos que has ingresado. Última actualización: <strong>${now()}</strong>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem;">
+      ${[
+        {l:'Total prospectos',v:total,extra:'registrados'},
+        {l:'Alta prioridad',v:alta,extra:`${Math.round(alta/total*100)||0}% del total`},
+        {l:'Con correo registrado',v:conEmail,extra:`${Math.round(conEmail/total*100)||0}% del total`},
+        {l:'En licitación',v:byModalidad.licitacion,extra:'búsqueda formal'},
+        {l:'Con cartera proveedores',v:byModalidad.cartera,extra:'ya evaluando'},
+        {l:'Búsqueda abierta',v:byModalidad.busqueda,extra:'sin proveedor'},
+      ].map(r=>`<div style="background:#fff;border-radius:10px;padding:13px 15px;box-shadow:0 1px 4px rgba(0,0,0,.06);">
+        <div style="font-size:10px;color:#888780;margin-bottom:3px;">${r.l}</div>
+        <div style="font-size:22px;font-weight:600;">${r.v}</div>
+        <div style="font-size:11px;color:#888780;margin-top:2px;">${r.extra}</div>
+      </div>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem;">
+      <div style="background:#fff;border-radius:12px;padding:1.25rem;box-shadow:0 1px 4px rgba(0,0,0,.07);">
+        <div style="font-size:12px;font-weight:600;margin-bottom:12px;">Por sector</div>
+        ${sectorRows.map(([s,n])=>`<div style="margin-bottom:9px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>${s}</span><span style="color:#888780;">${n}</span></div>
+          <div style="background:#F1EFE8;border-radius:4px;height:7px;"><div style="background:var(--orange);height:7px;border-radius:4px;width:${Math.round(n/maxSec*100)}%;"></div></div>
+        </div>`).join('')}
+      </div>
+      <div style="background:#fff;border-radius:12px;padding:1.25rem;box-shadow:0 1px 4px rgba(0,0,0,.07);">
+        <div style="font-size:12px;font-weight:600;margin-bottom:12px;">Por tipo de servicio</div>
+        ${[['Cocina en sitio',byServicio.cocina,'#D85A30'],['Autoservicio',byServicio.autoservicio,'#185FA5'],['Env. descartables',byServicio.descartable,'#BA7517'],['Meriendas',byServicio.merienda,'#1D9E75']].map(([l,n,c])=>`
+        <div style="margin-bottom:9px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>${l}</span><span style="color:#888780;">${n}</span></div>
+          <div style="background:#F1EFE8;border-radius:4px;height:7px;"><div style="background:${c};height:7px;border-radius:4px;width:${total?Math.round(n/total*100):0}%;"></div></div>
+        </div>`).join('')}
+        <div style="font-size:12px;font-weight:600;margin-top:14px;margin-bottom:10px;">Por ciudad</div>
+        ${[['Guayaquil',byCity.Guayaquil,'#185FA5'],['Durán',byCity.Durán,'#BA7517'],['Daule',byCity.Daule,'#1D9E75']].map(([l,n,c])=>`
+        <div style="margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>${l}</span><span style="color:#888780;">${n}</span></div>
+          <div style="background:#F1EFE8;border-radius:4px;height:7px;"><div style="background:${c};height:7px;border-radius:4px;width:${total?Math.round(n/total*100):0}%;"></div></div>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:8px;padding:11px 14px;font-size:12px;color:#92400E;">
+      ⚠️ <strong>Nota sobre la información:</strong> Los prospectos actuales fueron ingresados manualmente basándose en licitaciones públicas (SERCOP), contactos directos, referidos y LinkedIn. Esta herramienta <strong>no extrae datos automáticamente de internet</strong>. Toda la información es la que tú registras.
+    </div>
+  </div>`;
+}
+
+// ─── MODAL UTILS ──────────────────────────────────────────────────────────────
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
+function closeModalOutside(e){ if(e.target===document.getElementById('modalOverlay')) closeModal(); }
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+updateStats();
+filterAndRender();
+setInterval(()=>{ document.getElementById('lastUpdate').textContent=now(); }, 60000);
+// Sincronizar con Google Sheets al cargar
+syncFromSheets();
+// Re-sincronizar cada 5 minutos si el dashboard está abierto
+setInterval(syncFromSheets, 5*60*1000);
+</script>
+</body>
+</html>
